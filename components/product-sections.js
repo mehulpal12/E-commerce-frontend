@@ -33,7 +33,7 @@ export default function ProductsPage() {
       const response = await fetch("https://e-commerce-backend-psi-three.vercel.app/api/products/");
 
       if (!response.ok) {
-        throw new Error("Failed to fetch products");
+       throw new Error(`HTTP error! status: ${response.status}`);
       }
 
       const data = await response.json();
