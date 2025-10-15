@@ -53,7 +53,7 @@ export default function CasualPage() {
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const res = await fetch("http://localhost:7000/api/products/"); // your backend route
+        const res = await fetch("https://e-commerce-backend-psi-three.vercel.app/api/products/"); // your backend route
         const data = await res.json();
         setProducts(data.products);
         // assuming backend returns { products: [...] }
