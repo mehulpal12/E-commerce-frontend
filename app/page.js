@@ -1,9 +1,24 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 
 export default function UserRegister() {
+  onst [dbStatus, setDbStatus] = useState(null);
+
+  useEffect(() => {
+    async function checkDB() {
+      try {
+        const response = await fetch("https://e-commerce-backend-psi-three.vercel.app/test");
+        const data = await response.json();
+        setDbStatus(data.message);
+      } catch (error) {
+        setDbStatus("DB connection failed");
+        console.error(error);
+      }
+    }
+    checkDB();
+  }, []);
   const [form, setForm] = useState({
     userName: "",
     email: "",
