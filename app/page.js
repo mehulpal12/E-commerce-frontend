@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 
 export default function UserRegister() {
-  onst [dbStatus, setDbStatus] = useState(null);
+  const [dbStatus, setDbStatus] = useState(null);
 
   useEffect(() => {
     async function checkDB() {
