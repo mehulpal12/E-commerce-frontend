@@ -14,7 +14,7 @@ export default function Header() {
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const res = await fetch("https://e-commerce-backend-psi-three.vercel.app/api/products/");
+        const res = await fetch("e-commerce-backend-psi-three.vercel.app/api/products/");
         const data = await res.json();
         setAllProducts(data.products);
       } catch (error) {
