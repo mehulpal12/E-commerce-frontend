@@ -30,7 +30,7 @@ export default function ProductsPage() {
       setError(null);
 
       // Fetch products from your backend
-      const response = await fetch("e-commerce-backend-psi-three.vercel.app/api/products/");
+      const response = await fetch("https://e-commerce-backend-psi-three.vercel.app/api/products/");
 
       if (!response.ok) {
         throw new Error("Failed to fetch products");
