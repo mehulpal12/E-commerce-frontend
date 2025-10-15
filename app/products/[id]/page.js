@@ -121,7 +121,7 @@ export default function ProductPage({params}) {
     const fetchProducts = async () => {
       try {
         
-        const res = await fetch(`e-commerce-backend-psi-three.vercel.app/api/products/${id}`);
+        const res = await fetch(`https://e-commerce-backend-psi-three.vercel.app/api/products/${id}`);
         const data = await res.json();
         console.log(data.product+"dfhgdfj");
         

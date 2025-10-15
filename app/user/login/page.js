@@ -15,7 +15,7 @@ export default function Login() {
     e.preventDefault();
     setError("");
     try {
-      const res = await fetch("e-commerce-backend-psi-three.vercel.app/user/login", {
+      const res = await fetch("https://e-commerce-backend-psi-three.vercel.app/user/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(form),

@@ -38,7 +38,7 @@ export default function AdminUploadPage() {
         const base64Image = reader.result;
 
         // Upload to Cloudinary via API
-        const response = await fetch('e-commerce-backend-psi-three.vercel.app/api/upload-image', {
+        const response = await fetch('https://e-commerce-backend-psi-three.vercel.app/api/upload-image', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
