@@ -5,6 +5,7 @@ import Link from "next/link";
 
 export default function UserRegister() {
   const [dbStatus, setDbStatus] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     async function checkDB() {
@@ -15,6 +16,8 @@ export default function UserRegister() {
       } catch (error) {
         setDbStatus("DB connection failed");
         console.error(error);
+      } finally {
+        setLoading(false);
       }
     }
     checkDB();
@@ -54,6 +57,23 @@ export default function UserRegister() {
       console.log(err);
     }
   };
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-screen text-xl font-semibold">
+        Checking database connection...
+      </div>
+    );
+  }
+
+  if (dbStatus !== "DB is connected") {
+    return (
+      <div className="flex justify-center items-center h-screen text-red-500 text-xl font-semibold">
+        {dbStatus}
+      </div>
+    );
+  }
+
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-100 via-purple-100 to-pink-100 py-8 px-4">
