@@ -116,12 +116,15 @@ export default function ProductPage({params}) {
 
     return stars;
   };
+  const API_URL = process.env.NEXT_PUBLIC_API_URL;
+
 
    useEffect(() => {
     const fetchProducts = async () => {
       try {
         
-        const res = await fetch(`https://e-commerce-backend-psi-three.vercel.app/api/products/${id}`);
+        const res = await fetch(`${API_URL}/api/products/${id}`);
+        // `https://e-commerce-backend-psi-three.vercel.app/api/products/${id}`
         const data = await res.json();
         console.log(data.product+"dfhgdfj");
         
@@ -234,7 +237,7 @@ export default function ProductPage({params}) {
             <div className="space-y-4">
               <div className="aspect-square bg-gray-100 rounded-lg overflow-hidden">
                 <div className="w-full h-full  flex ">
-                  <Image src={product.image} alt='product' width={600} height={250}  />
+                  <Image src={product.image || ""} alt='product' width={600} height={250}  />
                 </div>
               </div>
               <div className="grid grid-cols-3 gap-4">

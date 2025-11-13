@@ -16,6 +16,8 @@ export default function ProductsPage() {
   const [cartCount, setCartCount] = useState(0);
   const [searchQuery, setSearchQuery] = useState("");
   const [error, setError] = useState(null);
+  const API_URL = process.env.NEXT_PUBLIC_API_URL;
+
 
   // Fetch products from backend API on component mount
   useEffect(() => {
@@ -30,7 +32,8 @@ export default function ProductsPage() {
       setError(null);
 
       // Fetch products from your backend
-      const response = await fetch("https://e-commerce-backend-psi-three.vercel.app/api/products/");
+      const response = await fetch(`${API_URL}/api/products/`);
+      // change url to deploy backend like this "https://e-commerce-backend-psi-three.vercel.app/api/products/"
 
       if (!response.ok) {
        throw new Error(`HTTP error! status: ${response.status}`);
@@ -38,24 +41,12 @@ export default function ProductsPage() {
 
       const data = await response.json();
 
-      // Expected API response format:
-      // [
-      //   {
-      //     id: 1,
-      //     name: "Product Name",
-      //     price: 145,
-      //     size: "Large",
-      //     color: "White",
-      //     image: "cloudinary_url_or_public_id",
-      //     description: "Product description"
-      //   }
-      // ]
-
       setProducts(Array.isArray(data) ? data : data.products || []);
       setFilteredProducts(Array.isArray(data) ? data : data.products || []);
     } catch (error) {
       console.error("Fetch error:", error);
       setError(error.message);
+       router.push("/")
     } finally {
       setLoading(false);
     }

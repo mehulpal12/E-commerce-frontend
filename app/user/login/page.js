@@ -1,6 +1,8 @@
 "use client";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
+
 
 export default function Login() {
   const [form, setForm] = useState({ email: "", password: "", userName:"" });
@@ -10,12 +12,14 @@ export default function Login() {
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
+  const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
+// https://e-commerce-backend-psi-three.vercel.app/user/login
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
     try {
-      const res = await fetch("https://e-commerce-backend-psi-three.vercel.app/user/login", {
+      const res = await fetch(`${API_URL}/user/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(form),
@@ -24,6 +28,7 @@ export default function Login() {
       if (res.ok) {
         router.push("/home");
         localStorage.setItem("user", JSON.stringify(data.user));
+        localStorage.setItem("token", data.token);
       } else {
         setError(data.message || "Login failed");
       }
@@ -115,6 +120,12 @@ export default function Login() {
         >
           Login
         </button>
+          <div className="mt-6 text-center">
+                  <span className="text-gray-600">create a account?</span>
+                  <Link href="/" className="ml-2 text-blue-600 font-semibold hover:underline">
+                    sign-up
+                  </Link>
+                </div>
         {error && <p style={{ color: "red", textAlign: "center" }}>{error}</p>}
       </form>
     </div>

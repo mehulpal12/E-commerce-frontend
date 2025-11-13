@@ -19,6 +19,7 @@ export default function UserDetail() {
 
   const logout = function () {
      localStorage.removeItem("user");
+     localStorage.removeItem("token");
      router.push("/")
   }
 

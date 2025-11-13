@@ -33,7 +33,7 @@ export default function CartPage() {
       return;
     }
     const updatedCart = cart.map(item =>
-      item.id === id ? { ...item, quantity: newQuantity } : item
+      item._id === id ? { ...item, quantity: newQuantity } : item
     );
     saveCart(updatedCart);
   };
@@ -45,6 +45,8 @@ export default function CartPage() {
   const getTotalItems = () => {
     return cart.reduce((total, item) => total + item.quantity, 0);
   };
+  const API_URL = process.env.NEXT_PUBLIC_API_URL;
+
 
   // STRIPE PAYMENT FUNCTION
   const handleStripeCheckout = async () => {
@@ -56,7 +58,7 @@ export default function CartPage() {
     setLoading(true);
 
     try {
-      const response = await fetch('https://e-commerce-backend-psi-three.vercel.app/api/checkout', {
+      const response = await fetch(`${API_URL}/api/checkout`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -100,6 +102,7 @@ export default function CartPage() {
     // If imageUrl is a Cloudinary public_id, construct the URL
     if (imageUrl) {
       const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;
+      if (!cloudName) return "/placeholder-product.jpg";
       return `https://res.cloudinary.com/${cloudName}/image/upload/${imageUrl}`;
     }
 
@@ -140,10 +143,10 @@ export default function CartPage() {
             <h2 className="text-2xl font-semibold mb-2">Your cart is empty</h2>
             <p className="text-gray-600 mb-6">Add some products to get started!</p>
             <button 
-              onClick={() => router.push('/products')}
+              onClick={() => router.push('/home')}
               className="bg-black text-white px-8 py-3 rounded-full hover:bg-gray-800 transition"
             >
-              Continue Shopping
+              Continue Shopping 
             </button>
           </div>
         ) : (
@@ -158,7 +161,8 @@ export default function CartPage() {
                     src={getCloudinaryImage(item.image)}
                     alt={item.name}
                     fill
-                    className="w-full h-full object-cover"
+                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                    className="object-contain"
                     onError={(e) => (e.target.src = "/placeholder-product.jpg")}
                   />
                 </div>
@@ -182,14 +186,14 @@ export default function CartPage() {
                         <span className="text-xl font-bold">${item.price}</span>
                         <div className="flex items-center bg-gray-100 rounded-full">
                           <button
-                            onClick={() => updateQuantity(item.id, item.quantity - 1)}
+                            onClick={() => updateQuantity(item._id, item.quantity - 1)}
                             className="w-8 h-8 flex items-center justify-center hover:bg-gray-200 rounded-l-full transition"
                           >
                             −
                           </button>
                           <span className="w-12 text-center font-medium">{item.quantity}</span>
                           <button
-                            onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                            onClick={() => updateQuantity(item._id, item.quantity + 1)}
                             className="w-8 h-8 flex items-center justify-center hover:bg-gray-200 rounded-r-full transition"
                           >
                             +
@@ -201,7 +205,7 @@ export default function CartPage() {
                 </div>
               ))}
               <button 
-                onClick={() => router.push('/products')}
+                onClick={() => router.push('/home')}
                 className="w-full border-2 border-black text-black py-3 rounded-full hover:bg-black hover:text-white transition font-medium"
               >
                 ← Continue Shopping

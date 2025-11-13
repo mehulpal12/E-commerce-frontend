@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Menu, Search, ShoppingCart, User, X } from "lucide-react";
+import { Navbar04 } from "./ui/shadcn-io/navbar-04/index"
 import Link from "next/link";
 
 export default function Header() {
@@ -10,11 +11,15 @@ export default function Header() {
   const [allProducts, setAllProducts] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [filteredProducts, setFilteredProducts] = useState([]);
+  const API_URL = process.env.NEXT_PUBLIC_API_URL;
+
 
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const res = await fetch("https://e-commerce-backend-psi-three.vercel.app/api/products/");
+        const res = await fetch(`${API_URL}/api/products/`);
+      // change url to deploy backend like this "https://e-commerce-backend-psi-three.vercel.app/api/products/"
+
         const data = await res.json();
         setAllProducts(data.products);
       } catch (error) {
@@ -43,6 +48,8 @@ export default function Header() {
   };
 
   return (
+
+
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 ">
       <div className="container flex h-16 items-center justify-between  md:px-16 px-8">
         {/* Logo */}

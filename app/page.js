@@ -10,7 +10,9 @@ export default function UserRegister() {
   useEffect(() => {
     async function checkDB() {
       try {
-        const response = await fetch("https://e-commerce-backend-psi-three.vercel.app/test");
+        const response = await fetch("http://localhost:7000/test");
+              // change url to deploy backend like this "https://e-commerce-backend-psi-three.vercel.app/test" for production 
+
         const data = await response.json();
         setDbStatus(data.message);
       } catch (error) {
@@ -22,6 +24,7 @@ export default function UserRegister() {
     }
     checkDB();
   }, []);
+  
   const [form, setForm] = useState({
     userName: "",
     email: "",
@@ -31,24 +34,38 @@ export default function UserRegister() {
   });
   const [error, setError] = useState("");
   const router = useRouter();
+  // Redirect based on presence of "user" in localStorage:
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const user = localStorage.getItem("user");
+    if (user) {
+      router.replace("/home");
+    } else {
+      return
+    }
+  }, [router]);
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
+  const API_URL = process.env.NEXT_PUBLIC_API_URL;
+
 
   const handleSubmit = async (e) => {
+    
     e.preventDefault();
     setError("");
     try {
-      const res = await fetch("https://e-commerce-backend-psi-three.vercel.app/user/register", {
+      const res = await fetch(`${API_URL}/user/register`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(form),
       });
       const data = await res.json();
       if (res.ok) {
-        router.push("/home");
         localStorage.setItem("user", JSON.stringify(data.user));
+        localStorage.setItem("token", data.token);
+        router.push("/home");
       } else {
         setError(data.message || "Registration failed");
       }

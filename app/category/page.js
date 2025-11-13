@@ -5,6 +5,15 @@ import Head from "next/head";
 import { Slider } from "@/components/ui/slider";
 import Link from "next/link";
 import Image from "next/image";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "../../components/ui/pagination"
 
 export default function CasualPage() {
   const [filters, setFilters] = useState({
@@ -49,11 +58,14 @@ export default function CasualPage() {
     "4X-Large",
   ];
   const dressStyles = ["Casual", "Formal", "Party", "Gym"];
+  const API_URL = process.env.NEXT_PUBLIC_API_URL;
+
 
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const res = await fetch("https://e-commerce-backend-psi-three.vercel.app/api/products/"); // your backend route
+        const res = await fetch(`${API_URL}/api/products/`);
+         // your backend route "https://e-commerce-backend-psi-three.vercel.app/api/products/"
         const data = await res.json();
         setProducts(data.products);
         // assuming backend returns { products: [...] }
@@ -374,7 +386,7 @@ export default function CasualPage() {
               </div>
 
               {/* Pagination */}
-              <div className="flex justify-center items-center space-x-2">
+              {/* <div className="flex justify-center items-center space-x-2">
                 <button className="px-3 py-2 border border-gray-300 rounded hover:bg-gray-50 flex items-center">
                   ← Previous
                 </button>
@@ -400,7 +412,49 @@ export default function CasualPage() {
                 <button className="px-3 py-2 border border-gray-300 rounded hover:bg-gray-50 flex items-center">
                   Next →
                 </button>
-              </div>
+              </div> */}
+              {/* <div 
+      className="flex justify-center self-start pt-6 w-full" 
+      style={{ 
+        all: 'revert',
+        display: 'flex',
+        justifyContent: 'center',
+        alignSelf: 'flex-start',
+        paddingTop: '1.5rem',
+        width: '100%',
+        fontSize: '14px',
+        lineHeight: '1.5',
+        letterSpacing: 'normal'
+      }}
+    >
+      <Pagination>
+        <PaginationContent>
+          <PaginationItem>
+            <PaginationPrevious href="#" onClick={(e) => e.preventDefault()} />
+          </PaginationItem>
+          <PaginationItem>
+            <PaginationLink href="#" isActive onClick={(e) => e.preventDefault()}>1</PaginationLink>
+          </PaginationItem>
+          <PaginationItem>
+            <PaginationLink href="#"  onClick={(e) => e.preventDefault()}>
+              2
+            </PaginationLink>
+          </PaginationItem>
+          <PaginationItem>
+            <PaginationLink href="#" onClick={(e) => e.preventDefault()}>3</PaginationLink>
+          </PaginationItem>
+          <PaginationItem>
+            <PaginationEllipsis />
+          </PaginationItem>
+          <PaginationItem>
+            <PaginationNext href="#" onClick={(e) => e.preventDefault()} />
+          </PaginationItem>
+        </PaginationContent>
+      </Pagination>
+    </div> */}
+
+
+
             </div>
           </div>
         </div>
