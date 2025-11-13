@@ -6,11 +6,13 @@ import Link from "next/link";
 export default function UserRegister() {
   const [dbStatus, setDbStatus] = useState(null);
   const [loading, setLoading] = useState(true);
+  const API_URL = process.env.NEXT_PUBLIC_API_URL;
+
 
   useEffect(() => {
     async function checkDB() {
       try {
-        const response = await fetch("http://localhost:7000/test");
+        const response = await fetch(`${API_URL}/test`);
               // change url to deploy backend like this "https://e-commerce-backend-psi-three.vercel.app/test" for production 
 
         const data = await response.json();
@@ -48,7 +50,6 @@ export default function UserRegister() {
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
-  const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
 
   const handleSubmit = async (e) => {
