@@ -3,7 +3,6 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Menu, Search, ShoppingCart, User, X } from "lucide-react";
-import { Navbar04 } from "./ui/shadcn-io/navbar-04/index"
 import Link from "next/link";
 
 export default function Header() {
@@ -54,35 +53,35 @@ export default function Header() {
       <div className="container flex h-16 items-center justify-between  md:px-16 px-8">
         {/* Logo */}
         <div className="flex items-center">
-          <h1 className="text-2xl font-bold pe-16">SHOP.CO</h1>
+          <Link href="/home" className="text-2xl font-bold pe-16">SHOP.CO</Link>
         </div>
 
         {/* Desktop Navigation */}
         <nav className="hidden md:flex items-center space-x-8">
-          <a
-            href="#"
+          <Link
+            href="/home"
             className="text-sm font-medium hover:text-primary transition-colors"
           >
             Shop
-          </a>
-          <a
-            href="#"
+          </Link>
+          <Link
+            href="/smallpage/onSale"
             className="text-sm font-medium hover:text-primary transition-colors"
           >
             On Sale
-          </a>
-          <a
-            href="#"
+          </Link>
+          <Link
+            href="/category"
             className="text-sm font-medium hover:text-primary transition-colors"
           >
             New Arrivals
-          </a>
-          <a
-            href="#"
+          </Link>
+          <Link
+            href="/smallpage/brands"
             className="text-sm font-medium hover:text-primary transition-colors"
           >
             Brands
-          </a>
+          </Link>
           <Link href={"/category"}>
             <button
               href="#"

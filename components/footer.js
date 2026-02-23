@@ -26,7 +26,7 @@ export default function Footer() {
           <div className="col-span-2 md:col-span-1">
             <h3 className="text-2xl font-bold mb-4">SHOP.CO</h3>
             <p className="text-muted-foreground text-sm mb-6">
-              We have clothes that suits your style and which you're proud to wear. From women to men.
+              We have clothes that suits your style and which you are proud to wear. From women to men.
             </p>
             <div className="flex space-x-4">
               {/* Social Media Icons */}
@@ -49,7 +49,7 @@ export default function Footer() {
               <ul className="space-y-3">
                 {section.links.map((link) => (
                   <li key={link}>
-                    <a href="#" className="text-muted-foreground text-sm hover:text-foreground transition-colors">
+                    <a href={`/${link.toLowerCase()}`} className="text-muted-foreground text-sm hover:text-foreground transition-colors">
                       {link}
                     </a>
                   </li>

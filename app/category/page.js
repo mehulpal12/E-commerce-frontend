@@ -14,6 +14,7 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "../../components/ui/pagination"
+import Header from "@/components/header";
 
 export default function CasualPage() {
   const [filters, setFilters] = useState({
@@ -202,32 +203,7 @@ export default function CasualPage() {
         </header>
 
         {/* Navigation */}
-        <nav className="border-b border-gray-200 px-4 py-4">
-          <div className="max-w-7xl mx-auto flex items-center justify-between">
-            <div className="flex items-center space-x-8">
-             <Link href={'/home'}> <h1 className="text-2xl font-bold">SHOP.CO</h1></Link>
-              <div className="hidden md:flex space-x-6">
-                <a href="/home" className="hover:text-gray-600 flex items-center">
-                  Shop <span className="ml-1">▼</span>
-                </a>
-                <a href="/home" className="hover:text-gray-600">
-                  On Sale
-                </a>
-                <a href="/home" className="hover:text-gray-600">
-                  New Arrivals
-                </a>
-                <a href="/home" className="hover:text-gray-600">
-                  Brands
-                </a>
-              </div>
-            </div>
-            <div className="flex items-center space-x-4">
-
-             <Link href={"/cart"}> <button  className="p-2 hover:bg-gray-100 rounded">🛒</button></Link>
-              <Link href={"/user/userDetail"}><button className="p-2 hover:bg-gray-100 rounded">👤</button></Link>
-            </div>
-          </div>
-        </nav>
+      <Header/>
 
         {/* Breadcrumb */}
         <div className="max-w-7xl mx-auto px-4 py-4">
@@ -487,7 +463,7 @@ export default function CasualPage() {
               <div className="lg:col-span-1">
                 <h3 className="text-2xl font-bold mb-4">SHOP.CO</h3>
                 <p className="text-gray-600 mb-6">
-                  We have clothes that suits your style and which you're proud
+                  We have clothes that suits your style and which you are proud
                   to wear. From women to men.
                 </p>
                 <div className="flex space-x-4">

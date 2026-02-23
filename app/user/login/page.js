@@ -122,7 +122,7 @@ export default function Login() {
         </button>
           <div className="mt-6 text-center">
                   <span className="text-gray-600">create a account?</span>
-                  <Link href="/" className="ml-2 text-blue-600 font-semibold hover:underline">
+                  <Link href="/user/register" className="ml-2 text-blue-600 font-semibold hover:underline">
                     sign-up
                   </Link>
                 </div>

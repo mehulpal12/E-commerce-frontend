@@ -1,6 +1,8 @@
 "use client";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
+import RegisterPage from "../register/page";
 
 export default function UserDetail() {
   const [user, setUser] = useState(null);
@@ -25,8 +27,13 @@ export default function UserDetail() {
 
   if (!user) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-blue-100 via-purple-100 to-pink-100">
-        <div className="text-lg text-gray-600">please create accout</div>
+      <div className=" bg-gradient-to-br from-blue-100 via-purple-100 to-pink-100">
+        <div className="">
+          <Link href='/user/register'>
+          
+         <RegisterPage/>
+          </Link>
+          </div>
       </div>
     );
   }

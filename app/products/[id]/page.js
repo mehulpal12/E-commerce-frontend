@@ -1,93 +1,112 @@
-"use client"
+"use client";
 // pages/product.js
-import { useState, use, useEffect } from 'react';
-import Head from 'next/head';
-import Link from 'next/link';
-import Image from 'next/image';
+import { useState, use, useEffect } from "react";
+import Head from "next/head";
+import Link from "next/link";
+import Image from "next/image";
 
-export default function ProductPage({params}) {
+export default function ProductPage({ params }) {
   const { id } = use(params);
-  const [selectedColor, setSelectedColor] = useState('olive');
+  const [selectedColor, setSelectedColor] = useState("olive");
   const [product, setProduct] = useState([]);
-  const [selectedSize, setSelectedSize] = useState('Large');
+  const [selectedSize, setSelectedSize] = useState("Large");
   const [quantity, setQuantity] = useState(1);
-  const [activeTab, setActiveTab] = useState('reviews');
+  const [activeTab, setActiveTab] = useState("reviews");
   const [cart, setCart] = useState([]);
   const [cartCount, setCartCount] = useState(0);
-  
+  const API_URL = process.env.NEXT_PUBLIC_API_URL
+
 
   const colors = [
-    { name: 'olive', bg: 'bg-green-700', selected: selectedColor === 'olive' },
-    { name: 'forest', bg: 'bg-green-800', selected: selectedColor === 'forest' },
-    { name: 'navy', bg: 'bg-blue-900', selected: selectedColor === 'navy' }
+    { name: "olive", bg: "bg-green-700", selected: selectedColor === "olive" },
+    {
+      name: "forest",
+      bg: "bg-green-800",
+      selected: selectedColor === "forest",
+    },
+    { name: "navy", bg: "bg-blue-900", selected: selectedColor === "navy" },
   ];
 
-  const sizes = ['Small', 'Medium', 'Large', 'X-Large'];
+  const sizes = ["Small", "Medium", "Large", "X-Large"];
 
   const reviews = [
     {
       id: 1,
-      name: 'Samantha D.',
+      name: "Samantha D.",
       rating: 4.5,
-      date: 'August 14, 2023',
-      comment: 'I absolutely love this shirt! The design is unique and the fabric feels so comfortable. As a fellow designer, I appreciate the attention to detail. It\'s become my favorite go-to shirt.'
+      date: "August 14, 2023",
+      comment:
+        "I absolutely love this shirt! The design is unique and the fabric feels so comfortable. As a fellow designer, I appreciate the attention to detail. It's become my favorite go-to shirt.",
     },
     {
       id: 2,
-      name: 'Alex M.',
+      name: "Alex M.",
       rating: 4,
-      date: 'August 15, 2023',
-      comment: 'This T-shirt exceeded my expectations! The colors are vibrant and the print quality is top-notch. Being a LINUX designer myself, I\'m quite picky about aesthetics, and this t-shirt definitely gets a thumbs up from me.'
+      date: "August 15, 2023",
+      comment:
+        "This T-shirt exceeded my expectations! The colors are vibrant and the print quality is top-notch. Being a LINUX designer myself, I'm quite picky about aesthetics, and this t-shirt definitely gets a thumbs up from me.",
     },
     {
       id: 3,
-      name: 'Ethan R.',
+      name: "Ethan R.",
       rating: 4,
-      date: 'August 16, 2023',
-      comment: 'This t-shirt is a must-have for anyone who appreciates good design. The minimalistic yet stylish pattern caught my eye, and the fit is perfect. I can see the designer\'s touch in every aspect of this shirt.'
+      date: "August 16, 2023",
+      comment:
+        "This t-shirt is a must-have for anyone who appreciates good design. The minimalistic yet stylish pattern caught my eye, and the fit is perfect. I can see the designer's touch in every aspect of this shirt.",
     },
     {
       id: 4,
-      name: 'Olivia P.',
+      name: "Olivia P.",
       rating: 4.5,
-      date: 'August 17, 2023',
-      comment: 'As a UI/UX enthusiast, I value simplicity and functionality. This t-shirt not only represents those principles but also feels great to wear. It\'s evident that the designer poured their creativity into making this t-shirt stand out.'
-    }
+      date: "August 17, 2023",
+      comment:
+        "As a UI/UX enthusiast, I value simplicity and functionality. This t-shirt not only represents those principles but also feels great to wear. It's evident that the designer poured their creativity into making this t-shirt stand out.",
+    },
   ];
 
-  const relatedProducts = [
+const [relatedProducts, setRelatedProducts] = useState([]);
+
+useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        const res = await fetch(
+          `${API_URL}/api/products?limit=4`
+        );
+        const data = await res.json();
+
+        if (data.success) {
+          setRelatedProducts(data.products.slice(0, 4));
+        }
+      } catch (error) {
+        console.error(error);
+      } 
+    };
+
+    fetchProducts();
+  }, []);
+
+
+
+  const faqs = [
     {
-      id: 1,
-      name: 'Polo with Contrast Trims',
-      price: 212,
-      originalPrice: 242,
-      discount: 20,
-      rating: 4.0,
-      image: '/api/placeholder/300/300'
+      question: "Is this product original?",
+      answer:
+        "Yes, this product is 100% original and sourced directly from authorized distributors. We ensure strict quality checks before dispatch.",
     },
     {
-      id: 2,
-      name: 'Gradient Graphic T-shirt',
-      price: 145,
-      rating: 3.5,
-      image: '/api/placeholder/300/300'
+      question: "What is the return policy?",
+      answer:
+        "You can return the product within 7 days of delivery if it is unused and in its original packaging.",
     },
     {
-      id: 3,
-      name: 'Polo with Tipping Details',
-      price: 180,
-      rating: 4.5,
-      image: '/api/placeholder/300/300'
+      question: "How long does delivery take?",
+      answer:
+        "Delivery usually takes 3–5 business days depending on your location.",
     },
     {
-      id: 4,
-      name: 'Black Striped T-shirt',
-      price: 120,
-      originalPrice: 150,
-      discount: 20,
-      rating: 5.0,
-      image: '/api/placeholder/300/300'
-    }
+      question: "Is Cash on Delivery available?",
+      answer: "Yes, Cash on Delivery is available for selected locations.",
+    },
   ];
 
   const renderStars = (rating) => {
@@ -97,37 +116,40 @@ export default function ProductPage({params}) {
 
     for (let i = 0; i < fullStars; i++) {
       stars.push(
-        <span key={i} className="text-yellow-400">★</span>
+        <span key={i} className="text-yellow-400">
+          ★
+        </span>,
       );
     }
 
     if (hasHalfStar) {
       stars.push(
-        <span key="half" className="text-yellow-400">☆</span>
+        <span key="half" className="text-yellow-400">
+          ☆
+        </span>,
       );
     }
 
     const emptyStars = 5 - Math.ceil(rating);
     for (let i = 0; i < emptyStars; i++) {
       stars.push(
-        <span key={`empty-${i}`} className="text-gray-300">☆</span>
+        <span key={`empty-${i}`} className="text-gray-300">
+          ☆
+        </span>,
       );
     }
 
     return stars;
   };
-  const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
-
-   useEffect(() => {
+  useEffect(() => {
     const fetchProducts = async () => {
       try {
-        
         const res = await fetch(`${API_URL}/api/products/${id}`);
         // `https://e-commerce-backend-psi-three.vercel.app/api/products/${id}`
         const data = await res.json();
-        console.log(data.product+"dfhgdfj");
-        
+        console.log(data.product + "dfhgdfj");
+
         setProduct(data.product);
       } catch (error) {
         console.error("Failed to fetch products", error);
@@ -136,11 +158,9 @@ export default function ProductPage({params}) {
     console.log("Product ID from URL:", id);
 
     fetchProducts();
-    
   }, [id]);
-  
-  console.log(product + "edgerg");
 
+  console.log(product + "edgerg");
 
   useEffect(() => {
     updateCartCount();
@@ -148,7 +168,7 @@ export default function ProductPage({params}) {
 
   // Update cart count from localStorage
   const updateCartCount = () => {
-    const cart = JSON.parse(localStorage.getItem('cart') || '[]');
+    const cart = JSON.parse(localStorage.getItem("cart") || "[]");
     const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
     setCartCount(totalItems);
   };
@@ -156,11 +176,11 @@ export default function ProductPage({params}) {
   // Add to cart function
   const addToCart = (product) => {
     // Get existing cart from localStorage
-    const existingCart = JSON.parse(localStorage.getItem('cart') || '[]');
-    
+    const existingCart = JSON.parse(localStorage.getItem("cart") || "[]");
+
     // Check if product already exists
-    const existingItemIndex = existingCart.findIndex(item => item.id === id);
-    
+    const existingItemIndex = existingCart.findIndex((item) => item.id === id);
+
     if (existingItemIndex > -1) {
       // Product exists, increase quantity
       existingCart[existingItemIndex].quantity += 1;
@@ -168,13 +188,13 @@ export default function ProductPage({params}) {
       // New product, add with quantity 1
       existingCart.push({ ...product, quantity: 1 });
     }
-    
+
     // Save updated cart to localStorage
-    localStorage.setItem('cart', JSON.stringify(existingCart));
-    
+    localStorage.setItem("cart", JSON.stringify(existingCart));
+
     // Update cart count
     updateCartCount();
-    
+
     // Show success message
     // alert(`${product.name} added to cart!`);
   };
@@ -184,26 +204,38 @@ export default function ProductPage({params}) {
       <Head>
         <title>ONE LIFE GRAPHIC T-SHIRT - Shop.co</title>
         <title>{product.name}</title>
-        <meta name="description" content="Premium graphic t-shirt with unique design" />
+        <meta
+          name="description"
+          content="Premium graphic t-shirt with unique design"
+        />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
       </Head>
 
       <div className="min-h-screen bg-white">
         {/* Header */}
         <header className="bg-black text-white text-center py-2 text-sm">
-          Sign up and get 20% off to your first order. <span className="underline cursor-pointer">Sign Up Now</span>
+          Sign up and get 20% off to your first order.{" "}
+          <span className="underline cursor-pointer">Sign Up Now</span>
         </header>
 
         {/* Navigation */}
         <nav className="border-b border-gray-200 px-4 py-4">
           <div className="max-w-7xl mx-auto flex items-center justify-between">
             <div className="flex items-center space-x-8">
-              <h1 className="text-2xl font-bold">SHOP.CO</h1>
+              <Link href="/home" className="text-2xl font-bold">SHOP.CO</Link>
               <div className="hidden md:flex space-x-6">
-                <a href="#" className="hover:text-gray-600">Shop</a>
-                <a href="#" className="hover:text-gray-600">On Sale</a>
-                <a href="#" className="hover:text-gray-600">New Arrivals</a>
-                <a href="#" className="hover:text-gray-600">Brands</a>
+                <Link href="/home" className="hover:text-gray-600">
+                  Shop
+                </Link>
+                <a href="/smallpage/onSale" className="hover:text-gray-600">
+                  On Sale
+                </a>
+                <a href="#" className="hover:text-gray-600">
+                  New Arrivals
+                </a>
+                <a href="#" className="hover:text-gray-600">
+                  Brands
+                </a>
               </div>
             </div>
             <div className="flex items-center space-x-4">
@@ -223,9 +255,20 @@ export default function ProductPage({params}) {
         {/* Breadcrumb */}
         <div className="max-w-7xl mx-auto px-4 py-4">
           <div className="text-sm text-gray-600">
-            <a href="/" className="hover:text-black">Home</a> &gt; 
-            <a href="#" className="hover:text-black"> Shop</a> &gt; 
-            <a href="#" className="hover:text-black"> Men</a> &gt; 
+            <Link href="/" className="hover:text-black">
+              Home
+            </Link>{" "}
+            &gt;
+            <a href="#" className="hover:text-black">
+              {" "}
+              Shop
+            </a>{" "}
+            &gt;
+            <a href="#" className="hover:text-black">
+              {" "}
+              Men
+            </a>{" "}
+            &gt;
             <span className="text-black"> T-shirts</span>
           </div>
         </div>
@@ -237,10 +280,21 @@ export default function ProductPage({params}) {
             <div className="space-y-4">
               <div className="aspect-square bg-gray-100 rounded-lg overflow-hidden">
                 <div className="w-full h-full  flex ">
-                  <Image src={product.image || ""} alt='product' width={600} height={250}  />
+                  <Image
+                    src={
+                      product?.image &&
+                      typeof product.image === "string" &&
+                      product.image.includes("/")
+                        ? product.image
+                        : "/no-image.png"
+                    }
+                    alt={product.name || "product"}
+                    width={600}
+                    height={250}
+                  />
                 </div>
               </div>
-              <div className="grid grid-cols-3 gap-4">
+              {/* <div className="grid grid-cols-3 gap-4">
                 <div className="aspect-square bg-gray-100 rounded-lg cursor-pointer hover:ring-2 hover:ring-black">
                   <div className="w-full h-full bg-gradient-to-br from-green-100 to-green-200 rounded-lg"></div>
                 </div>
@@ -250,27 +304,34 @@ export default function ProductPage({params}) {
                 <div className="aspect-square bg-gray-100 rounded-lg cursor-pointer hover:ring-2 hover:ring-black">
                   <div className="w-full h-full bg-gradient-to-br from-green-300 to-green-400 rounded-lg"></div>
                 </div>
-              </div>
+              </div> */}
             </div>
 
             {/* Product Details */}
             <div className="space-y-6">
               <div>
-                <h1 className="text-3xl lg:text-4xl font-bold mb-4">{product.name}</h1>
+                <h1 className="text-3xl lg:text-4xl font-bold mb-4">
+                  {product.name}
+                </h1>
                 <div className="flex items-center space-x-2 mb-4">
-                  <div className="flex">
-                    {renderStars(4.5)}
-                  </div>
-                  <span className="text-sm text-gray-600">{product.rating}</span>
+                  <div className="flex">{renderStars(4.5)}</div>
+                  <span className="text-sm text-gray-600">
+                    {product.rating}
+                  </span>
                 </div>
                 <div className="flex items-center space-x-3 mb-4">
                   <span className="text-3xl font-bold">{product.price}</span>
-                  <span className="text-xl text-gray-500 line-through">$300</span>
-                  <span className="bg-red-100 text-red-600 px-2 py-1 rounded-full text-sm">{product.discount}</span>
+                  <span className="text-xl text-gray-500 line-through">
+                    $300
+                  </span>
+                  <span className="bg-red-100 text-red-600 px-2 py-1 rounded-full text-sm">
+                    {product.discount}
+                  </span>
                 </div>
                 <p className="text-gray-600">
-                  This graphic t-shirt which is perfect for any occasion. Crafted from a soft and 
-                  breathable fabric, it offers superior comfort and style.
+                  This graphic t-shirt which is perfect for any occasion.
+                  Crafted from a soft and breathable fabric, it offers superior
+                  comfort and style.
                 </p>
               </div>
 
@@ -283,7 +344,7 @@ export default function ProductPage({params}) {
                       key={color.name}
                       onClick={() => setSelectedColor(color.name)}
                       className={`w-10 h-10 rounded-full ${color.bg} ${
-                        color.selected ? 'ring-2 ring-black ring-offset-2' : ''
+                        color.selected ? "ring-2 ring-black ring-offset-2" : ""
                       }`}
                     />
                   ))}
@@ -300,8 +361,8 @@ export default function ProductPage({params}) {
                       onClick={() => setSelectedSize(size)}
                       className={`px-4 py-2 border rounded-full ${
                         selectedSize === size
-                          ? 'bg-black text-white'
-                          : 'border-gray-300 hover:border-black'
+                          ? "bg-black text-white"
+                          : "border-gray-300 hover:border-black"
                       }`}
                     >
                       {size}
@@ -327,14 +388,14 @@ export default function ProductPage({params}) {
                     +
                   </button>
                 </div>
-               <Link href={`/cart`}>
-                 <button
-                        onClick={() => addToCart(product)}
-                        className={`px-6 py-2 rounded-full font-medium transition `}
-                      >
-                        add to cart
-                      </button>
-               </Link>
+                <Link href={`/cart`}>
+                  <button
+                    onClick={() => addToCart(product)}
+                    className={`px-6 py-2 rounded-full font-medium transition `}
+                  >
+                    add to cart
+                  </button>
+                </Link>
               </div>
             </div>
           </div>
@@ -345,35 +406,44 @@ export default function ProductPage({params}) {
           <div className="border-t border-gray-200">
             <div className="flex space-x-8 border-b border-gray-200">
               <button
-                onClick={() => setActiveTab('details')}
+                onClick={() => setActiveTab("details")}
                 className={`py-4 px-2 border-b-2 ${
-                  activeTab === 'details' ? 'border-black text-black' : 'border-transparent text-gray-500'
+                  activeTab === "details"
+                    ? "border-black text-black"
+                    : "border-transparent text-gray-500"
                 }`}
               >
                 Product Details
               </button>
+
               <button
-                onClick={() => setActiveTab('reviews')}
+                onClick={() => setActiveTab("reviews")}
                 className={`py-4 px-2 border-b-2 ${
-                  activeTab === 'reviews' ? 'border-black text-black' : 'border-transparent text-gray-500'
+                  activeTab === "reviews"
+                    ? "border-black text-black"
+                    : "border-transparent text-gray-500"
                 }`}
               >
                 Rating & Reviews
               </button>
               <button
-                onClick={() => setActiveTab('faqs')}
+                onClick={() => setActiveTab("faqs")}
                 className={`py-4 px-2 border-b-2 ${
-                  activeTab === 'faqs' ? 'border-black text-black' : 'border-transparent text-gray-500'
+                  activeTab === "faqs"
+                    ? "border-black text-black"
+                    : "border-transparent text-gray-500"
                 }`}
               >
                 FAQs
               </button>
             </div>
 
-            {activeTab === 'reviews' && (
+            {activeTab === "reviews" && (
               <div className="py-8">
                 <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-8">
-                  <h2 className="text-2xl font-bold mb-4 lg:mb-0">All Reviews (451)</h2>
+                  <h2 className="text-2xl font-bold mb-4 lg:mb-0">
+                    All Reviews (451)
+                  </h2>
                   <div className="flex space-x-4">
                     <select className="border border-gray-300 rounded px-3 py-2">
                       <option>Latest</option>
@@ -388,7 +458,10 @@ export default function ProductPage({params}) {
 
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                   {reviews.map((review) => (
-                    <div key={review.id} className="border border-gray-200 rounded-lg p-6">
+                    <div
+                      key={review.id}
+                      className="border border-gray-200 rounded-lg p-6"
+                    >
                       <div className="flex justify-between items-start mb-4">
                         <div>
                           <div className="flex mb-2">
@@ -396,10 +469,14 @@ export default function ProductPage({params}) {
                           </div>
                           <h4 className="font-medium">{review.name}</h4>
                         </div>
-                        <button className="text-gray-400 hover:text-gray-600">⋯</button>
+                        <button className="text-gray-400 hover:text-gray-600">
+                          ⋯
+                        </button>
                       </div>
                       <p className="text-gray-600 mb-4">{review.comment}</p>
-                      <p className="text-sm text-gray-400">Posted on {review.date}</p>
+                      <p className="text-sm text-gray-400">
+                        Posted on {review.date}
+                      </p>
                     </div>
                   ))}
                 </div>
@@ -411,33 +488,87 @@ export default function ProductPage({params}) {
                 </div>
               </div>
             )}
+            {activeTab === "details" && (
+              <div className="py-8 text-gray-600">
+                <p>
+                  {" "}
+                  This graphic t-shirt which is perfect for any occasion.
+                  Crafted from a soft and breathable fabric, it offers superior
+                  comfort and style.
+                </p>
+              </div>
+            )}
+
+            {activeTab === "faqs" && (
+              <div className="mt-8 border-t pt-6">
+                <h3 className="text-lg font-semibold text-gray-800 mb-4">
+                  Frequently Asked Questions
+                </h3>
+
+                <div className="space-y-4">
+                  {faqs.map((faq, index) => (
+                    <details
+                      key={index}
+                      className="group border rounded-md p-4 cursor-pointer"
+                    >
+                      <summary className="font-medium text-gray-700 flex justify-between items-center">
+                        {faq.question}
+                        <span className="text-gray-400 group-open:rotate-180 transition">
+                          ▼
+                        </span>
+                      </summary>
+
+                      <p className="mt-2 text-gray-600 text-sm leading-relaxed">
+                        {faq.answer}
+                      </p>
+                    </details>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         </div>
 
         {/* Related Products */}
         <div className="max-w-7xl mx-auto px-4 py-8">
-          <h2 className="text-3xl font-bold text-center mb-12">YOU MIGHT ALSO LIKE</h2>
+          <h2 className="text-3xl font-bold text-center mb-12">
+            YOU MIGHT ALSO LIKE
+          </h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {relatedProducts.map((product) => (
-              <div key={product.id} className="group cursor-pointer">
+              <div key={product._id} className="group cursor-pointer">
                 <div className="aspect-square bg-gray-100 rounded-lg mb-4 overflow-hidden">
-                  <div className={`w-full h-full bg-gradient-to-br ${
-                    product.id === 1 ? 'from-blue-100 to-blue-200' :
-                    product.id === 2 ? 'from-pink-100 to-pink-200' :
-                    product.id === 3 ? 'from-red-100 to-red-200' :
-                    'from-gray-100 to-gray-200'
-                  } group-hover:scale-105 transition duration-300`}></div>
+                  <div
+                    className="relative h-64 bg-gray-100"
+                  >
+                    <Image
+                    src={
+                      product?.image &&
+                      typeof product.image === "string" &&
+                      product.image.includes("/")
+                        ? product.image
+                        : "/no-image.png"
+                    }
+                    alt={product.name || "product"}
+                    width={600}
+                    height={250}
+                  />
+                  </div>
                 </div>
                 <h3 className="font-medium mb-2">{product.name}</h3>
                 <div className="flex mb-2">
                   {renderStars(product.rating)}
-                  <span className="text-sm text-gray-600 ml-2">{product.rating}/5</span>
+                  <span className="text-sm text-gray-600 ml-2">
+                    {product.rating}/5
+                  </span>
                 </div>
                 <div className="flex items-center space-x-2">
                   <span className="font-bold">${product.price}</span>
                   {product.originalPrice && (
                     <>
-                      <span className="text-gray-500 line-through">${product.originalPrice}</span>
+                      <span className="text-gray-500 line-through">
+                        ${product.originalPrice}
+                      </span>
                       <span className="bg-red-100 text-red-600 px-2 py-1 rounded-full text-xs">
                         -{product.discount}%
                       </span>
@@ -453,7 +584,9 @@ export default function ProductPage({params}) {
         <div className="bg-black text-white py-16">
           <div className="max-w-7xl mx-auto px-4 text-center">
             <h2 className="text-3xl lg:text-4xl font-bold mb-8">
-              STAY UP TO DATE ABOUT<br />OUR LATEST OFFERS
+              STAY UP TO DATE ABOUT
+              <br />
+              OUR LATEST OFFERS
             </h2>
             <div className="max-w-md mx-auto space-y-4">
               <input
@@ -475,8 +608,8 @@ export default function ProductPage({params}) {
               <div className="lg:col-span-1">
                 <h3 className="text-2xl font-bold mb-4">SHOP.CO</h3>
                 <p className="text-gray-600 mb-6">
-                  We have clothes that suits your style and which you're proud to wear. 
-                  From women to men.
+                  We have clothes that suits your style and which you are proud
+                  to wear. From women to men.
                 </p>
                 <div className="flex space-x-4">
                   <div className="w-8 h-8 bg-black rounded-full"></div>
@@ -484,44 +617,108 @@ export default function ProductPage({params}) {
                   <div className="w-8 h-8 bg-black rounded-full"></div>
                 </div>
               </div>
-              
+
               <div>
                 <h4 className="font-medium mb-4">COMPANY</h4>
                 <ul className="space-y-2 text-gray-600">
-                  <li><a href="#" className="hover:text-black">About</a></li>
-                  <li><a href="#" className="hover:text-black">Features</a></li>
-                  <li><a href="#" className="hover:text-black">Works</a></li>
-                  <li><a href="#" className="hover:text-black">Career</a></li>
+                  <li>
+                    <a href="#" className="hover:text-black">
+                      About
+                    </a>
+                  </li>
+                  <li>
+                    <a href="#" className="hover:text-black">
+                      Features
+                    </a>
+                  </li>
+                  <li>
+                    <a href="#" className="hover:text-black">
+                      Works
+                    </a>
+                  </li>
+                  <li>
+                    <a href="#" className="hover:text-black">
+                      Career
+                    </a>
+                  </li>
                 </ul>
               </div>
 
               <div>
                 <h4 className="font-medium mb-4">HELP</h4>
                 <ul className="space-y-2 text-gray-600">
-                  <li><a href="#" className="hover:text-black">Customer Support</a></li>
-                  <li><a href="#" className="hover:text-black">Delivery Details</a></li>
-                  <li><a href="#" className="hover:text-black">Terms & Conditions</a></li>
-                  <li><a href="#" className="hover:text-black">Privacy Policy</a></li>
+                  <li>
+                    <a href="#" className="hover:text-black">
+                      Customer Support
+                    </a>
+                  </li>
+                  <li>
+                    <a href="#" className="hover:text-black">
+                      Delivery Details
+                    </a>
+                  </li>
+                  <li>
+                    <a href="#" className="hover:text-black">
+                      Terms & Conditions
+                    </a>
+                  </li>
+                  <li>
+                    <a href="#" className="hover:text-black">
+                      Privacy Policy
+                    </a>
+                  </li>
                 </ul>
               </div>
 
               <div>
                 <h4 className="font-medium mb-4">FAQ</h4>
                 <ul className="space-y-2 text-gray-600">
-                  <li><a href="#" className="hover:text-black">Account</a></li>
-                  <li><a href="#" className="hover:text-black">Manage Deliveries</a></li>
-                  <li><a href="#" className="hover:text-black">Orders</a></li>
-                  <li><a href="#" className="hover:text-black">Payments</a></li>
+                  <li>
+                    <a href="#" className="hover:text-black">
+                      Account
+                    </a>
+                  </li>
+                  <li>
+                    <a href="#" className="hover:text-black">
+                      Manage Deliveries
+                    </a>
+                  </li>
+                  <li>
+                    <a href="#" className="hover:text-black">
+                      Orders
+                    </a>
+                  </li>
+                  <li>
+                    <a href="#" className="hover:text-black">
+                      Payments
+                    </a>
+                  </li>
                 </ul>
               </div>
 
               <div>
                 <h4 className="font-medium mb-4">RESOURCES</h4>
                 <ul className="space-y-2 text-gray-600">
-                  <li><a href="#" className="hover:text-black">Free eBooks</a></li>
-                  <li><a href="#" className="hover:text-black">Development Tutorial</a></li>
-                  <li><a href="#" className="hover:text-black">How to - Blog</a></li>
-                  <li><a href="#" className="hover:text-black">Youtube Playlist</a></li>
+                  <li>
+                    <a href="#" className="hover:text-black">
+                      Free eBooks
+                    </a>
+                  </li>
+                  <li>
+                    <a href="#" className="hover:text-black">
+                      Development Tutorial
+                    </a>
+                  </li>
+                  <li>
+                    <a href="#" className="hover:text-black">
+                      How to - Blog
+                    </a>
+                  </li>
+                  <li>
+                    <a href="#" className="hover:text-black">
+                      Youtube Playlist
+                    </a>
+                  </li>
                 </ul>
               </div>
             </div>
