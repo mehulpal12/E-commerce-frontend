@@ -4,39 +4,42 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Menu, Search, ShoppingCart, User, X } from "lucide-react";
 import Link from "next/link";
+import useProductStore from "@/store/productStore";
 
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [allProducts, setAllProducts] = useState([]);
+    const { products, isLoading } = useProductStore();
+  
+  // const [products, setproducts] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [filteredProducts, setFilteredProducts] = useState([]);
   const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
+  // useEffect(() => {
+  //   const fetchProducts = async () => {
+  //     try {
+  //       const res = await fetch(`${API_URL}/api/products/`);
+  //       // change url to deploy backend like this "https://e-commerce-backend-psi-three.vercel.app/api/products/"
 
-  useEffect(() => {
-    const fetchProducts = async () => {
-      try {
-        const res = await fetch(`${API_URL}/api/products/`);
-      // change url to deploy backend like this "https://e-commerce-backend-psi-three.vercel.app/api/products/"
+  //       const data = await res.json();
+  //       setproducts(data.products);
+  //     } catch (error) {
+  //       console.error("Failed to fetch products", error);
+  //     }
+  //   };
 
-        const data = await res.json();
-        setAllProducts(data.products);
-      } catch (error) {
-        console.error("Failed to fetch products", error);
-      }
-    };
-
-    fetchProducts();
-  });
-  useEffect(() => {
-    setFilteredProducts(allProducts);
-  }, []);
+  //   fetchProducts();
+  // });
+  // useEffect(() => {
+  //   setFilteredProducts(products);
+  // }, []);
 
   const handleSearch = (query) => {
     setSearchQuery(query);
     // Filter products by name (case-insensitive)
-    const filtered = allProducts.filter((product) =>
-      product.name.toLowerCase().includes(query.toLowerCase())
+    const filtered = (products || []).filter((p) =>
+      p.name.toLowerCase().includes(query.toLowerCase()) ||
+      p.description?.toLowerCase().includes(query.toLowerCase())
     );
     setFilteredProducts(filtered);
   };
@@ -47,13 +50,13 @@ export default function Header() {
   };
 
   return (
-
-
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 ">
       <div className="container flex h-16 items-center justify-between  md:px-16 px-8">
         {/* Logo */}
         <div className="flex items-center">
-          <Link href="/home" className="text-2xl font-bold pe-16">SHOP.CO</Link>
+          <Link href="/home" className="text-2xl font-bold pe-16">
+            SHOP.CO
+          </Link>
         </div>
 
         {/* Desktop Navigation */}
@@ -162,13 +165,20 @@ export default function Header() {
           <div className="container px-4 py-4 space-y-4">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
-              <input
-                type="text"
-                placeholder="Search for products..."
-                value={searchQuery}
-                onChange={(e) => handleSearch(e.target.value)}
-                className="w-full px-4 py-2 pl-10 pr-10 border border-gray-300 rounded-full bg-gray-50 focus:outline-none focus:ring-2 focus:ring-black focus:bg-white transition"
-              />
+            <input
+  type="text"
+  placeholder="Search for products..."
+  value={searchQuery}
+  onChange={(e) => handleSearch(e.target.value)}
+  
+  // Opens menu when user clicks into the field
+  onFocus={() => setIsMenuOpen(true)} 
+  
+  // Closes menu when user clicks anywhere else
+  onBlur={() => setIsMenuOpen(false)} 
+
+  className="w-full px-4 py-2 pl-10 pr-10 border border-gray-300 rounded-full bg-gray-50 focus:outline-none focus:ring-2 focus:ring-black focus:bg-white transition"
+/>
               {searchQuery && (
                 <button
                   onClick={clearSearch}

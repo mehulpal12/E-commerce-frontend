@@ -130,9 +130,9 @@ const registerPage = () => {
           </button>
           {error && <p className="text-red-500 text-center">{error}</p>}
         </form>
-        <div className="mt-6 text-center">
+        <div className="mt-6 text-center" >
           <span className="text-gray-600">Already have an account?</span>
-          <Link href="/user/login" className="ml-2 text-blue-600 font-semibold hover:underline">
+          <Link  href="/user/login"  className="ml-2 text-blue-600 font-semibold hover:underline">
             Login
           </Link>
         </div>

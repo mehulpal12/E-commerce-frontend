@@ -19,8 +19,8 @@ const footerSections = [
 
 export default function Footer() {
   return (
-    <footer className="bg-muted/30 pt-16 pb-8">
-      <div className="container px-4">
+    <footer className="bg-muted/30 pt-16 pb-8 px-24">
+      <div className="container ">
         <div className="grid grid-cols-2 md:grid-cols-5 gap-8 mb-12">
           {/* Logo and Description */}
           <div className="col-span-2 md:col-span-1">

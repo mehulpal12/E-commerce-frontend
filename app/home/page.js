@@ -7,10 +7,15 @@ import BrowseStyles from "@/components/browse-styles"
 import Testimonials from "@/components/testimonials"
 import Newsletter from "@/components/newsletter"
 import Footer from "@/components/footer"
+import useProductStore from "@/store/productStore"
 import { useEffect } from "react"
-import { useRouter } from "next/navigation"
+
 
 export default function HomePage() {
+    const fetchProducts = useProductStore((state) => state.fetchProducts);
+    useEffect(() => {
+      fetchProducts(); // Fires once on mount
+    }, []);
   // const router = useRouter();
   // useEffect(() => {
   //   const token = localStorage.getItem("token");

@@ -3,11 +3,16 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import HomePage from "./home/page";
+import useProductStore from '@/store/productStore';
 
 export default function UserRegister() {
   const [dbStatus, setDbStatus] = useState(null);
   const [loading, setLoading] = useState(true);
   const API_URL = process.env.NEXT_PUBLIC_API_URL;
+  const fetchProducts = useProductStore((state) => state.fetchProducts);
+  useEffect(() => {
+    fetchProducts(); // Fires once on mount
+  }, []);
 
 
   useEffect(() => {
