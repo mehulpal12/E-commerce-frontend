@@ -1,35 +1,44 @@
 "use client";
 
+import { memo, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Star } from "lucide-react";
 import Image from "next/image";
 import { motion } from "framer-motion";
 
-export default function HeroSection() {
-  // Animation Variants
-  const containerVariants = {
+// Memoize sub-components to prevent re-renders when the parent re-renders
+const StatItem = memo(({ value, label }) => (
+  <div className="space-y-1">
+    <div className="text-3xl font-bold tracking-tight">{value}</div>
+    <div className="text-sm text-gray-500">{label}</div>
+  </div>
+));
+StatItem.displayName = "StatItem";
+
+function HeroSection() {
+  // 1. useMemo for Animation Variants 
+  // This ensures the objects aren't re-created on every render cycle.
+  const containerVariants = useMemo(() => ({
     hidden: { opacity: 0 },
     visible: {
       opacity: 1,
-      transition: {
-        staggerChildren: 0.2, // Delay between each child element
-      },
+      transition: { staggerChildren: 0.15 },
     },
-  };
+  }), []);
 
-  const itemVariants = {
+  const itemVariants = useMemo(() => ({
     hidden: { y: 20, opacity: 0 },
     visible: {
       y: 0,
       opacity: 1,
-      transition: { duration: 0.5, ease: "easeOut" },
+      transition: { duration: 0.5, ease: [0.33, 1, 0.68, 1] }, // Custom cubic-bezier for smoother feel
     },
-  };
+  }), []);
 
   return (
-    <section className="relative overflow-hidden  min-h-[80vh] flex items-center">
+    <section className="relative overflow-hidden min-h-[80vh] flex items-center ">
       <div className="container mx-auto px-4 py-12 md:py-20">
-        <div className="grid lg:grid-cols-2 gap-12 items-center">
+        <div className="grid lg:grid-cols-2 gap-8 items-center">
           
           {/* Left Content */}
           <motion.div 
@@ -47,7 +56,7 @@ export default function HeroSection() {
 
             <motion.p 
               variants={itemVariants}
-              className="text-lg text-gray-600 max-w-md leading-relaxed"
+              className="text-base md:text-lg text-gray-600 max-w-md leading-relaxed"
             >
               Browse through our diverse range of meticulously crafted garments,
               designed to bring out your individuality and cater to your sense
@@ -55,7 +64,10 @@ export default function HeroSection() {
             </motion.p>
 
             <motion.div variants={itemVariants}>
-              <Button size="lg" className="w-full sm:w-auto px-10 py-7 text-lg rounded-full bg-black hover:bg-gray-800 transition-all">
+              <Button 
+                size="lg" 
+                className="w-full sm:w-auto px-12 py-7 text-lg rounded-full bg-black hover:bg-gray-800 transition-all active:scale-95"
+              >
                 Shop Now
               </Button>
             </motion.div>
@@ -63,47 +75,58 @@ export default function HeroSection() {
             {/* Stats */}
             <motion.div 
               variants={itemVariants}
-              className="flex flex-wrap gap-8 pt-4"
+              className="flex flex-wrap gap-6 md:gap-8 pt-4"
             >
               <StatItem value="200+" label="International Brands" />
-              <div className="w-px h-12 bg-gray-200 hidden sm:block" />
+              <div className="w-px h-12 bg-gray-300 hidden sm:block" />
               <StatItem value="2,000+" label="High-Quality Products" />
-              <div className="w-px h-12 bg-gray-200 hidden sm:block" />
+              <div className="w-px h-12 bg-gray-300 hidden sm:block" />
               <StatItem value="30,000+" label="Happy Customers" />
             </motion.div>
           </motion.div>
 
           {/* Right Content - Hero Image */}
           <motion.div 
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.8, delay: 0.5 }}
+            initial={{ opacity: 0, x: 50 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.8, delay: 0.2 }}
             className="relative"
           >
-            <div className="relative aspect-[4/5] md:aspect-[0.85/1] overflow-hidden rounded-2xl shadow-2xl">
+            <div className="relative aspect-[4/5] md:aspect-[0.9/1] overflow-hidden  ">
+              {/* IMAGE OPTIMIZATION:
+                  1. priority: For LCP (Largest Contentful Paint)
+                  2. sizes: Tells browser which size to download based on screen width
+                  3. quality: Reduced to 85 (unnoticeable difference, huge file saving)
+              */}
               <Image
                 src="https://res.cloudinary.com/datsq9ufg/image/upload/v1760100137/fash_axu2rw.jpg"
-                className="object-cover w-full h-full hover:scale-105 transition-transform duration-700"
-                alt="Fashion Hero"
+                alt="Fashion Hero Models"
                 fill
                 priority
+                quality={85}
+                sizes="(max-width: 768px) 100vw, 50vw"
+                className="object-cover object-top rounded-lg"
               />
               
-              {/* Decorative Animated Stars */}
+              {/* Decorative Stars */}
               <motion.div 
-                animate={{ scale: [1, 1.2, 1], rotate: [0, 10, 0] }}
-                transition={{ repeat: Infinity, duration: 3 }}
-                className="absolute top-10 right-10"
+                animate={{ 
+                  scale: [1, 1.2, 1],
+                  rotate: [0, 20, 0],
+                  opacity: [0.8, 1, 0.8]
+                }}
+                transition={{ repeat: Infinity, duration: 4, ease: "easeInOut" }}
+                className="absolute top-10 right-5 md:right-10"
               >
-                <Star className="h-12 w-12 fill-black text-black" />
+                <Star className="h-10 w-10 md:h-14 md:w-14 fill-black text-black" />
               </motion.div>
               
               <motion.div 
-                animate={{ scale: [1, 1.3, 1] }}
-                transition={{ repeat: Infinity, duration: 4, delay: 1 }}
-                className="absolute top-1/2 left-4"
+                animate={{ scale: [1, 1.3, 1], opacity: [0.3, 0.6, 0.3] }}
+                transition={{ repeat: Infinity, duration: 5, delay: 1 }}
+                className="absolute top-1/2 left-0"
               >
-                <Star className="h-6 w-6 fill-black text-black opacity-30" />
+                <Star className="h-6 w-6 md:h-8 md:w-8 fill-black text-black" />
               </motion.div>
             </div>
           </motion.div>
@@ -113,11 +136,4 @@ export default function HeroSection() {
   );
 }
 
-function StatItem({ value, label }) {
-  return (
-    <div className="space-y-1">
-      <div className="text-3xl font-bold">{value}</div>
-      <div className="text-sm text-gray-500">{label}</div>
-    </div>
-  );
-}
+export default memo(HeroSection);

@@ -5,43 +5,51 @@ const useProductStore = create((set, get) => ({
   currentProduct: null,
   isLoading: false,
   error: null,
+  lastFetched: null, 
 
-  // The function to call the backend
   fetchProducts: async () => {
-    // 1. Prevent redundant calls if products are already loaded
-    if (get().isLoading || get().products.length > 0) return;
+    const { products, lastFetched, isLoading } = get();
+    
 
-    set({ isLoading: true });
+    const isCacheFresh = lastFetched && Date.now() - lastFetched < 5 * 60 * 1000;
+    if (isLoading || (products.length > 0 && isCacheFresh)) return;
+
+    set({ isLoading: true, error: null });
 
     try {
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/products/`);
-      if (!response.ok) throw new Error('Failed to fetch products');
+      if (!response.ok) throw new Error('Failed to fetch');
       
-      const data = await response.ok ? await response.json() : [];
-    //   console.log(data.products[0]);
+      const data = await response.json();
       
-      
-      // 2. Update the global state
-      set({ products: data.products, isLoading: false });
+      set({ 
+        products: data.products || [], 
+        isLoading: false, 
+        lastFetched: Date.now() 
+      });
     } catch (err) {
       set({ error: err.message, isLoading: false });
     }
   },
-  fetchProductById: async (id) => {
-    // Optional: Check if the product is already loaded to avoid a new API call
-    if (get().currentProduct?._id === id) return;
 
-    set({ isLoading: true, currentProduct: null }); // Reset before fetching
+  fetchProductById: async (id) => {
+    const existingProduct = get().products.find(p => p._id === id);
+    if (existingProduct) {
+      set({ currentProduct: existingProduct });
+      return; 
+    }
+
+    if (get().isLoading) return;
+
+    set({ isLoading: true, currentProduct: null });
     try {
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/products/${id}`);
       const data = await res.json();
       set({ currentProduct: data.product, isLoading: false });
     } catch (error) {
-      console.error("Fetch error:", error);
-      set({ isLoading: false });
+      set({ error: "Product not found", isLoading: false });
     }
   }
-
 }));
 
 export default useProductStore;

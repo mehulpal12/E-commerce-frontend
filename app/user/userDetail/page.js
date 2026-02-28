@@ -1,78 +1,116 @@
 "use client";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
-import RegisterPage from "../register/page";
+import { motion, AnimatePresence } from "framer-motion";
 
 export default function UserDetail() {
   const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
   const router = useRouter();
 
   useEffect(() => {
-    // Example: get user from localStorage or fetch from API
     const storedUser = localStorage.getItem("user");
     if (storedUser) {
       setUser(JSON.parse(storedUser));
     } else {
-      // Optionally, fetch user from backend here
-      // fetch("/api/user/me").then...
+      router.push("/user/register");
     }
-  }, []);
+    setLoading(false);
+  }, [router]);
 
-  const logout = function () {
-     localStorage.removeItem("user");
-     localStorage.removeItem("token");
-     router.push("/")
-  }
+  const logout = () => {
+    localStorage.removeItem("user");
+    localStorage.removeItem("token");
+    setUser(null);
+    router.push("/");
+  };
 
-  if (!user) {
-    return (
-      <div className=" bg-gradient-to-br from-blue-100 via-purple-100 to-pink-100">
-        <div className="">
-          <Link href='/user/register'>
-          
-         <RegisterPage/>
-          </Link>
-          </div>
-      </div>
-    );
-  }
+  if (loading) return <div className="min-h-screen bg-slate-50" />;
+  if (!user) return null;
+
+  // Animation Variants
+  const cardVariants = {
+    hidden: { opacity: 0, y: 20, scale: 0.95 },
+    visible: { 
+      opacity: 1, 
+      y: 0, 
+      scale: 1,
+      transition: { duration: 0.5, ease: "easeOut", when: "beforeChildren", staggerChildren: 0.1 }
+    }
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, x: -10 },
+    visible: { opacity: 1, x: 0 }
+  };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-100 via-purple-100 to-pink-100 py-8 px-4">
-      <div className="w-full max-w-lg bg-white rounded-2xl shadow-xl p-8 md:p-10">
-        <div className="flex flex-col items-center">
-          <div className="w-24 h-24 rounded-full bg-gradient-to-tr from-blue-400 to-purple-400 flex items-center justify-center text-white text-4xl font-bold mb-4 shadow-lg">
-            {user.fullName
-              ? user.fullName
-                  .split(" ")
-                  .map((n) => n[0])
-                  .join("")
-                  .toUpperCase()
-              : user.userName[0].toUpperCase()}
-          </div>
-          <h2 className="text-2xl font-bold text-blue-700 mb-1">{user.fullName}</h2>
-          <p className="text-gray-500 mb-4">@{user.userName}</p>
-        </div>
-        <div className="mt-6 space-y-4">
-          <div className="flex items-center">
-            <span className="w-32 font-semibold text-gray-700">Email:</span>
-            <span className="text-gray-600">{user.email}</span>
-            
-    
-          </div>
-          <div className="mt-6 space-y-4">
-          <div className="flex justify-center">
-            <button
-              onClick={logout}
-              className="px-6 py-2 rounded-lg bg-gradient-to-r from-blue-500 to-purple-500 text-white font-semibold shadow-md hover:from-blue-600 hover:to-purple-600 transition"
+    <div className="min-h-screen flex items-center justify-center bg-[radial-gradient(circle_at_top_left,_var(--tw-gradient-stops))] from-slate-100 via-blue-50 to-purple-100 py-8 px-4">
+      <AnimatePresence>
+        <motion.div 
+          variants={cardVariants}
+          initial="hidden"
+          animate="visible"
+          className="w-full max-w-md bg-white/80 backdrop-blur-md border border-white rounded-3xl shadow-2xl overflow-hidden"
+        >
+          {/* Top Decorative Banner */}
+          <div className="h-32 bg-gradient-to-r from-blue-600 to-purple-600 w-full" />
+
+          <div className="p-8 -mt-16 flex flex-col items-center">
+            {/* Avatar with Ring Animation */}
+            <motion.div 
+              whileHover={{ scale: 1.05 }}
+              className="relative"
             >
-              Logout
-            </button>
+              <div className="w-28 h-28 rounded-3xl bg-white p-1 shadow-xl">
+                <div className="w-full h-full rounded-2xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white text-3xl font-extrabold tracking-wider">
+                  {user.fullName?.[0] || user.userName?.[0]}
+                </div>
+              </div>
+            </motion.div>
+
+            {/* Profile Info */}
+            <motion.div variants={itemVariants} className="text-center mt-4">
+              <h2 className="text-3xl font-black text-slate-800 tracking-tight">
+                {user.fullName || "Member"}
+              </h2>
+              <p className="text-blue-600 font-medium">@{user.userName}</p>
+            </motion.div>
+
+            {/* Details Section */}
+            <motion.div variants={itemVariants} className="w-full mt-8 space-y-4">
+              <div className="bg-slate-50/50 p-4 rounded-2xl border border-slate-100">
+                <p className="text-xs uppercase tracking-widest text-slate-400 font-bold mb-1">Email Address</p>
+                <p className="text-slate-700 font-medium">{user.email}</p>
+              </div>
+              
+              <div className="bg-slate-50/50 p-4 rounded-2xl border border-slate-100">
+                <p className="text-xs uppercase tracking-widest text-slate-400 font-bold mb-1">Account Status</p>
+                <div className="flex items-center gap-2">
+                  <span className="h-2 w-2 rounded-full bg-green-500 animate-pulse" />
+                  <p className="text-slate-700 font-medium">Active</p>
+                </div>
+              </div>
+            </motion.div>
+
+            {/* Action Buttons */}
+            <motion.div variants={itemVariants} className="w-full mt-10">
+              <motion.button
+                whileHover={{ scale: 1.02, boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.1)" }}
+                whileTap={{ scale: 0.98 }}
+                onClick={logout}
+                className="w-full py-4 rounded-2xl bg-slate-900 text-white font-bold tracking-wide hover:bg-slate-800 transition-colors shadow-lg"
+              >
+                Sign Out
+              </motion.button>
+              
+              <p className="text-center text-slate-400 text-sm mt-6">
+                Logged in since {new Date().toLocaleDateString()}
+              </p>
+            </motion.div>
           </div>
-        </div>
-        </div>
-      </div>
+        </motion.div>
+      </AnimatePresence>
     </div>
   );
 }

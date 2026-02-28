@@ -1,10 +1,12 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useCallback, useMemo, memo } from "react"
 import { Button } from "@/components/ui/button"
 import { ChevronLeft, ChevronRight, Star } from "lucide-react"
+import { motion, AnimatePresence } from "framer-motion"
 
-const testimonials = [
+// 1. Hoist static data outside the component
+const TESTIMONIALS = [
   {
     id: 1,
     name: "Sarah M.",
@@ -25,49 +27,90 @@ const testimonials = [
   },
 ]
 
+// 2. Memoize the Testimonial Card
+// This prevents the card from re-rendering unless the 'isActive' status or data changes
+const TestimonialCard = memo(({ testimonial, isActive }) => {
+  // 3. useMemo for Star rendering
+  // Stars are static for each rating; no need to re-map them every render
+  const stars = useMemo(() => {
+    return Array.from({ length: 5 }, (_, i) => (
+      <Star 
+        key={i} 
+        className={`h-5 w-5 ${i < testimonial.rating ? "fill-yellow-400 text-yellow-400" : "text-gray-300"}`} 
+      />
+    ))
+  }, [testimonial.rating])
+
+  return (
+    <motion.div
+      layout
+      className={`bg-card border rounded-2xl p-6 transition-all duration-500 h-full ${
+        isActive ? "ring-2 ring-black shadow-lg scale-[1.02]" : "opacity-60 scale-95"
+      }`}
+    >
+      <div className="flex items-center mb-4">{stars}</div>
+      <p className="text-muted-foreground mb-4 text-pretty italic">"{testimonial.text}"</p>
+      <div className="font-bold flex items-center gap-2">
+        {testimonial.name}
+        <span className="bg-green-100 text-green-700 text-[10px] px-2 py-0.5 rounded-full">Verified</span>
+      </div>
+    </motion.div>
+  )
+})
+
+TestimonialCard.displayName = "TestimonialCard"
+
 export default function Testimonials() {
   const [currentIndex, setCurrentIndex] = useState(0)
 
-  const nextTestimonial = () => {
-    setCurrentIndex((prev) => (prev + 1) % testimonials.length)
-  }
+  // 4. useCallback for navigation handlers
+  // This ensures the functions have stable identities across renders
+  const nextTestimonial = useCallback(() => {
+    setCurrentIndex((prev) => (prev + 1) % TESTIMONIALS.length)
+  }, [])
 
-  const prevTestimonial = () => {
-    setCurrentIndex((prev) => (prev - 1 + testimonials.length) % testimonials.length)
-  }
-
-  const renderStars = (rating) => {
-    return Array.from({ length: 5 }, (_, i) => (
-      <Star key={i} className={`h-5 w-5 ${i < rating ? "fill-yellow-400 text-yellow-400" : "text-gray-300"}`} />
-    ))
-  }
+  const prevTestimonial = useCallback(() => {
+    setCurrentIndex((prev) => (prev - 1 + TESTIMONIALS.length) % TESTIMONIALS.length)
+  }, [])
 
   return (
-    <section className="container px-4 ">
-      <div className="flex items-center justify-between mb-8">
-        <h2 className="text-3xl md:text-4xl font-bold">OUR HAPPY CUSTOMERS</h2>
-        <div className="flex gap-2">
-          <Button variant="outline" size="icon" onClick={prevTestimonial} className="rounded-full bg-transparent">
-            <ChevronLeft className="h-4 w-4" />
+    <section className="container px-4 py-12 mx-auto">
+      <div className="flex items-end justify-between mb-8">
+        <motion.h2 
+          initial={{ opacity: 0, x: -20 }}
+          whileInView={{ opacity: 1, x: 0 }}
+          className="text-3xl md:text-5xl font-black tracking-tighter"
+        >
+          OUR HAPPY CUSTOMERS
+        </motion.h2>
+        
+        <div className="flex gap-3">
+          <Button 
+            variant="outline" 
+            size="icon" 
+            onClick={prevTestimonial} 
+            className="rounded-full hover:bg-black hover:text-white transition-all"
+          >
+            <ChevronLeft className="h-5 w-5" />
           </Button>
-          <Button variant="outline" size="icon" onClick={nextTestimonial} className="rounded-full bg-transparent">
-            <ChevronRight className="h-4 w-4" />
+          <Button 
+            variant="outline" 
+            size="icon" 
+            onClick={nextTestimonial} 
+            className="rounded-full hover:bg-black hover:text-white transition-all"
+          >
+            <ChevronRight className="h-5 w-5" />
           </Button>
         </div>
       </div>
 
-      <div className="grid md:grid-cols-3 gap-6">
-        {testimonials.map((testimonial, index) => (
-          <div
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {TESTIMONIALS.map((testimonial, index) => (
+          <TestimonialCard
             key={testimonial.id}
-            className={`bg-card border rounded-2xl p-6 transition-all duration-300 ${
-              index === currentIndex ? "ring-2 ring-primary" : ""
-            }`}
-          >
-            <div className="flex items-center mb-4">{renderStars(testimonial.rating)}</div>
-            <p className="text-muted-foreground mb-4 text-pretty">{testimonial.text}</p>
-            <div className="font-semibold">{testimonial.name}</div>
-          </div>
+            testimonial={testimonial}
+            isActive={index === currentIndex}
+          />
         ))}
       </div>
     </section>

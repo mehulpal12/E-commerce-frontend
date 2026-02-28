@@ -1,17 +1,57 @@
 "use client";
-// pages/product.js
-import { useState, use, useEffect } from "react";
+
+import React, { useState, use, useEffect, useMemo, useCallback, memo } from "react";
 import Head from "next/head";
 import Link from "next/link";
 import Image from "next/image";
 import useProductStore from "@/store/productStore";
 import Header from "@/components/header";
 import Footer from "@/components/footer";
+import { useRouter } from "next/navigation";
+
+// 1. Memoized Star Renderer
+const Stars = memo(({ rating = 4.5 }) => {
+  return (
+    <div className="flex">
+      {[1, 2, 3, 4, 5].map((i) => (
+        <span key={i} className={i <= rating ? "text-yellow-400" : "text-gray-300"}>
+          ★
+        </span>
+      ))}
+    </div>
+  );
+});
+Stars.displayName = "Stars";
+
+// 2. Memoized Related Product Card - Corrected Image Handling
+const RelatedProductCard = memo(({ rp }) => (
+  <Link href={`/product/${rp._id}`} className="group">
+    {/* Corrected: Removed object-contain p-4, added object-cover */}
+    <div className="aspect-square bg-[#F0EEED] rounded-xl mb-4 relative overflow-hidden mx-2">
+      <Image 
+        src={rp.image || "/placeholder-product.jpg"} 
+        alt={rp.name} 
+        fill 
+        sizes="(max-width: 768px) 50vw, 25vw"
+        className="object-cover group-hover:scale-105 transition-transform duration-300" // Fills space, no padding
+      />
+    </div>
+    <h3 className="font-semibold font-sans truncate text-black group-hover:text-slate-700 transition-colors">
+      {rp.name}
+    </h3>
+    <div className="flex items-center space-x-2 mt-1">
+      <span className="font-bold text-black">₹{rp.price}</span>
+      {rp.discount && <span className="text-red-500 text-sm">-{rp.discount}%</span>}
+    </div>
+  </Link>
+));
+RelatedProductCard.displayName = "RelatedProductCard";
 
 export default function ProductPage({ params }) {
-  const { id } = use(params);
-
   
+  const { id } = use(params);
+   const router = useRouter();
+
 
   // Local State
   const [selectedColor, setSelectedColor] = useState("olive");
@@ -24,21 +64,27 @@ export default function ProductPage({ params }) {
   // Zustand Store
   const { currentProduct: product, fetchProductById, isLoading } = useProductStore();
 
-  // 1. Fetch Main Product via Zustand
+  // 3. Fetch Logic
   useEffect(() => {
-    if (id) {
-      fetchProductById(id);
-    }
+    if (id) fetchProductById(id);
   }, [id, fetchProductById]);
 
-  // 2. Fetch Related Products Locally
   useEffect(() => {
     const fetchRelated = async () => {
       try {
         const res = await fetch(`http://localhost:7000/api/products?limit=4`);
         const data = await res.json();
+        // Fallback data if API fails to show grid correction
+        const fallbackProducts = [
+          { _id: '1', name: 'Raw Edge Tee', price: '1499', image: 'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?q=80&w=500' },
+          { _id: '2', name: 'Classic Denim', price: '3299', discount: 10, image: 'https://images.unsplash.com/photo-1541099649105-f69ad21f3246?q=80&w=500' },
+          { _id: '3', name: 'Checkered Shirt', price: '2199', image: 'https://images.unsplash.com/photo-1589310243389-96a5483213a8?q=80&w=500' },
+          { _id: '4', name: 'Chino Shorts', price: '1799', image: 'https://images.unsplash.com/photo-1594633312681-425c7b97ccd1?q=80&w=500' },
+        ];
         if (data.success) {
           setRelatedProducts(data.products.slice(0, 4));
+        } else {
+          setRelatedProducts(fallbackProducts);
         }
       } catch (error) {
         console.error("Related products fetch failed:", error);
@@ -47,139 +93,107 @@ export default function ProductPage({ params }) {
     fetchRelated();
   }, []);
 
-  // 3. Cart Logic
-  useEffect(() => {
-    updateCartCount();
-  }, []);
-
-  const updateCartCount = () => {
+  // 4. Cart Logic with useCallback
+  const updateCartCount = useCallback(() => {
     const cart = JSON.parse(localStorage.getItem("cart") || "[]");
     const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
     setCartCount(totalItems);
-  };
+  }, []);
 
-  const addToCart = (productToAdd) => {
+  useEffect(() => {
+    updateCartCount();
+  }, [updateCartCount]);
+
+  const addToCart = useCallback((productToAdd) => {
+    if (!productToAdd) return;
     const existingCart = JSON.parse(localStorage.getItem("cart") || "[]");
     const existingItemIndex = existingCart.findIndex((item) => item._id === productToAdd._id);
 
     if (existingItemIndex > -1) {
       existingCart[existingItemIndex].quantity += quantity;
     } else {
-      existingCart.push({ ...productToAdd, quantity: quantity, selectedColor, selectedSize });
+      existingCart.push({ ...productToAdd, quantity, selectedColor, selectedSize });
     }
 
     localStorage.setItem("cart", JSON.stringify(existingCart));
     updateCartCount();
-  };
+    router.push("/cart")
 
-  // 4. Loading Guard - IMPORTANT: Prevents crash while product is null
+  }, [quantity, selectedColor, selectedSize, updateCartCount]);
+
+  // 5. Memoized Static Constants
+  const colors = useMemo(() => [
+    { name: "olive", bg: "bg-green-700" },
+    { name: "forest", bg: "bg-green-800" },
+    { name: "navy", bg: "bg-blue-900" },
+  ], []);
+
+  const sizes = useMemo(() => ["Small", "Medium", "Large", "X-Large"], []);
+
+  // Guard Clause
   if (isLoading || !product) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-white">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-black mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading Product Details...</p>
-        </div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-black"></div>
       </div>
     );
   }
-
-  // Helper for stars
-  const renderStars = (rating) => {
-    const stars = [];
-    for (let i = 1; i <= 5; i++) {
-      stars.push(
-        <span key={i} className={i <= rating ? "text-yellow-400" : "text-gray-300"}>
-          ★
-        </span>
-      );
-    }
-    return stars;
-  };
-
-  const colors = [
-    { name: "olive", bg: "bg-green-700", selected: selectedColor === "olive" },
-    { name: "forest", bg: "bg-green-800", selected: selectedColor === "forest" },
-    { name: "navy", bg: "bg-blue-900", selected: selectedColor === "navy" },
-  ];
-
-  const sizes = ["Small", "Medium", "Large", "X-Large"];
-
-  const reviews = [
-    { id: 1, name: "Samantha D.", rating: 4.5, date: "Aug 14, 2023", comment: "I absolutely love this shirt! Fabric feels so comfortable." },
-    { id: 2, name: "Alex M.", rating: 4, date: "Aug 15, 2023", comment: "The colors are vibrant and the print quality is top-notch." }
-  ];
-
-  const faqs = [
-    { question: "Is this product original?", answer: "Yes, 100% original and sourced from authorized distributors." },
-    { question: "What is the return policy?", answer: "Return within 7 days if unused and in original packaging." }
-  ];
 
   return (
     <>
       <Head>
         <title>{product.name} | Shop.co</title>
-        <meta name="description" content={product.description || "Premium product"} />
       </Head>
 
-      <div className="min-h-screen bg-white">
-        <header className="bg-black text-white text-center py-2 text-sm">
-          Sign up and get 20% off to your first order. <span className="underline cursor-pointer">Sign Up Now</span>
-        </header>
+      <div className="min-h-screen bg-white text-black">
+        <Header cartCount={cartCount} />
 
-        <Header/>
-
-        <div className="max-w-7xl mx-auto px-4 py-8">
+        <div className="max-w-7xl mx-auto px-4 py-8 md:py-12">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
-            {/* Image Section */}
-            <div className="aspect-square bg-gray-100 rounded-lg overflow-hidden relative">
+            {/* Main Product Image Correction */}
+            {/* Corrected: Removed object-contain p-4, added object-cover */}
+            <div className="aspect-square bg-[#F0EEED] rounded-2xl overflow-hidden relative">
               <Image
-                src={product.image || "/no-image.png"}
+                src={product.image || "/placeholder-product.jpg"}
                 alt={product.name}
                 fill
-                className="object-contain p-4"
+                priority // Priority for LCP
+                sizes="(max-width: 1024px) 100vw, 50vw"
+                className="object-cover " // Fills space perfectly
               />
             </div>
 
             {/* Info Section */}
-            <div className="space-y-6">
-              <h1 className="text-4xl font-bold">{product.name}</h1>
+            <div className="space-y-2">
+              <h1 className="text-3xl md:text-4xl  tracking-tighter font-semibold font-sans">{product.name}</h1>
               <div className="flex items-center space-x-2">
-                <div className="flex">{renderStars(product.rating || 4.5)}</div>
-                <span className="text-gray-600">{product.rating}/5</span>
+                <Stars rating={product.rating} />
+                <span className="text-gray-600 font-medium">{product.rating}/5</span>
               </div>
-              <div className="flex items-center space-x-3">
-                <span className="text-3xl font-bold">₹{product.price}</span>
+              
+              <div className="flex items-center space-x-3 text-3xl font-semibold font-sans">
+                <span>₹{product.price}</span>
                 {product.originalPrice && (
-                  <span className="text-xl text-gray-500 line-through">₹{product.originalPrice}</span>
+                  <span className="text-2xl text-gray-400 line-through">₹{product.originalPrice}</span>
                 )}
                 {product.discount && (
-                  <span className="bg-red-100 text-red-600 px-2 py-1 rounded-full text-sm">-{product.discount}%</span>
+                    <span className="bg-red-100 text-red-600 px-3 py-1 rounded-full text-xs font-bold">
+                        -{product.discount}%
+                    </span>
                 )}
               </div>
-              <p className="text-gray-600">{product.description || "Crafted from soft and breathable fabric, it offers superior comfort and style."}</p>
+              
+              <p className="text-slate-600 leading-relaxed">{product.description || "Soft, breathable fabric for superior comfort and style."}</p>
 
-              <div>
-                <h3 className="font-medium mb-3">Select Colors</h3>
-                <div className="flex space-x-3">
-                  {colors.map((color) => (
-                    <button
-                      key={color.name}
-                      onClick={() => setSelectedColor(color.name)}
-                      className={`w-10 h-10 rounded-full ${color.bg} ${color.selected ? "ring-2 ring-black ring-offset-2" : ""}`}
-                    />
-                  ))}
-                </div>
-              </div>
-
-              <div>
-                <h3 className="font-medium mb-3">Choose Size</h3>
-                <div className="flex space-x-3">
+              {/* Size Selection */}
+              <div className="border-t border-slate-100 pt-6">
+                <h3 className="text-slate-500 mb-3 font-medium">Choose Size</h3>
+                <div className="flex flex-wrap gap-3">
                   {sizes.map((size) => (
                     <button
                       key={size}
                       onClick={() => setSelectedSize(size)}
-                      className={`px-4 py-2 border rounded-full ${selectedSize === size ? "bg-black text-white" : "border-gray-300 hover:border-black"}`}
+                      className={`px-6 py-3 border rounded-full font-medium transition ${selectedSize === size ? "bg-black text-white border-black" : "bg-[#F0F0F0] border-[#F0F0F0] text-slate-700 hover:border-slate-300"}`}
                     >
                       {size}
                     </button>
@@ -187,15 +201,16 @@ export default function ProductPage({ params }) {
                 </div>
               </div>
 
-              <div className="flex space-x-4">
-                <div className="flex items-center border border-gray-300 rounded-full">
-                  <button onClick={() => setQuantity(Math.max(1, quantity - 1))} className="px-4 py-2">−</button>
-                  <span className="px-4 py-2 font-bold">{quantity}</span>
-                  <button onClick={() => setQuantity(quantity + 1)} className="px-4 py-2">+</button>
+              {/* Quantity and CTA */}
+              <div className="flex space-x-4 pt-8 border-t border-slate-100">
+                <div className="flex items-center border border-gray-100 rounded-full bg-[#F0F0F0]">
+                  <button onClick={() => setQuantity(q => Math.max(1, q - 1))} className="px-6 py-4 text-xl">−</button>
+                  <span className="px-4 font-bold w-16 text-center text-lg">{quantity}</span>
+                  <button onClick={() => setQuantity(q => q + 1)} className="px-6 py-4 text-xl">+</button>
                 </div>
                 <button
                   onClick={() => addToCart(product)}
-                  className="flex-1 bg-black text-white px-6 py-2 rounded-full font-medium hover:bg-gray-800 transition"
+                  className="flex-1 bg-black text-white px-8 py-4 rounded-full font-bold text-lg hover:bg-slate-800 transition transform active:scale-95"
                 >
                   Add to Cart
                 </button>
@@ -204,65 +219,87 @@ export default function ProductPage({ params }) {
           </div>
         </div>
 
-        {/* Tabs */}
-        <div className="max-w-7xl mx-auto px-4 py-8">
-          <div className="flex space-x-8 border-b mb-8">
-            {["details", "reviews", "faqs"].map((tab) => (
-              <button
-                key={tab}
-                onClick={() => setActiveTab(tab)}
-                className={`py-4 capitalize border-b-2 ${activeTab === tab ? "border-black text-black font-bold" : "border-transparent text-gray-500"}`}
-              >
-                {tab}
-              </button>
-            ))}
+        {/* Tabbed Content */}
+        <div className="max-w-7xl mx-auto px-4 py-16">
+          <TabHeader activeTab={activeTab} setActiveTab={setActiveTab} />
+          <div className="mt-12">
+            {activeTab === "reviews" && <ReviewsGrid />}
+            {activeTab === "faqs" && <FAQSection />}
+            {activeTab === "details" && <div className="text-slate-600 p-4">{product.description || "Product details go here."}</div>}
           </div>
-
-          {activeTab === "reviews" && (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {reviews.map((r) => (
-                <div key={r.id} className="border p-6 rounded-xl">
-                  <div className="flex mb-2 text-yellow-400">{renderStars(r.rating)}</div>
-                  <p className="font-bold">{r.name}</p>
-                  <p className="text-gray-600 my-2">"{r.comment}"</p>
-                  <p className="text-sm text-gray-400">Posted on {r.date}</p>
-                </div>
-              ))}
-            </div>
-          )}
-
-          {activeTab === "faqs" && (
-            <div className="space-y-4">
-              {faqs.map((f, i) => (
-                <details key={i} className="border p-4 rounded-lg cursor-pointer">
-                  <summary className="font-bold">{f.question}</summary>
-                  <p className="mt-2 text-gray-600">{f.answer}</p>
-                </details>
-              ))}
-            </div>
-          )}
         </div>
 
-        {/* Related Products */}
-        <div className="max-w-7xl mx-auto px-4 py-16 border-t">
-          <h2 className="text-3xl font-bold text-center mb-12 uppercase">You Might Also Like</h2>
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
+        {/* Related Products Grid */}
+        <section className="max-w-7xl mx-auto px-4 py-20 border-t border-slate-100">
+          <h2 className="text-4xl font-black text-center mb-16 uppercase tracking-tighter">You Might Also Like</h2>
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-x-6 gap-y-10">
             {relatedProducts.map((rp) => (
-              <Link href={`/product/${rp._id}`} key={rp._id} className="group">
-                <div className="aspect-square bg-gray-100 rounded-xl mb-4 relative overflow-hidden">
-                  <Image src={rp.image || "/no-image.png"} alt={rp.name} fill className="object-contain p-4" />
-                </div>
-                <h3 className="font-bold truncate">{rp.name}</h3>
-                <div className="flex items-center space-x-2 mt-1">
-                  <span className="font-bold">₹{rp.price}</span>
-                  {rp.discount && <span className="text-red-500 text-sm">-{rp.discount}%</span>}
-                </div>
-              </Link>
+              <RelatedProductCard key={rp._id} rp={rp} />
             ))}
           </div>
-        </div>
+        </section>
       </div>
-      <Footer/>
+      <Footer />
     </>
   );
 }
+
+// Sub-components to keep the main render tree clean
+const TabHeader = memo(({ activeTab, setActiveTab }) => (
+  <div className="flex justify-between border-b border-slate-100">
+    {["details", "reviews", "faqs"].map((tab) => (
+      <button
+        key={tab}
+        onClick={() => setActiveTab(tab)}
+        className={`flex-1 py-5 capitalize border-b-2 transition text-lg ${activeTab === tab ? "border-black text-black font-semibold" : "border-transparent text-slate-500 hover:text-black"}`}
+      >
+        {tab}
+      </button>
+    ))}
+  </div>
+));
+TabHeader.displayName = "TabHeader";
+
+// Static sections moved out to avoid re-renders
+const ReviewsGrid = memo(() => (
+  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+    {/* Reviews Data Mapping */}
+    <div className="border border-slate-100 p-8 rounded-2xl bg-white shadow-sm">
+      <Stars rating={5} />
+      <p className="font-bold mt-4 text-lg">Samantha D.</p>
+      <p className="text-slate-600 my-3 leading-relaxed">"I absolutely love this shirt! Fabric feels so comfortable. As a UX designer, I appreciate the attention to detail."</p>
+      <p className="text-sm text-slate-400 mt-6">Posted on August 14, 2023</p>
+    </div>
+    <div className="border border-slate-100 p-8 rounded-2xl bg-white shadow-sm">
+      <Stars rating={4} />
+      <p className="font-bold mt-4 text-lg">Alex M.</p>
+      <p className="text-slate-600 my-3 leading-relaxed">"The colors are vibrant and the print quality is top-notch. It fits perfectly."</p>
+      <p className="text-sm text-slate-400 mt-6">Posted on August 15, 2023</p>
+    </div>
+  </div>
+));
+ReviewsGrid.displayName = "ReviewsGrid";
+
+const FAQSection = memo(() => (
+  <div className="space-y-4 max-w-3xl mx-auto">
+    <details className="border border-slate-100 p-6 rounded-xl cursor-pointer bg-white shadow-sm group">
+      <summary className="font-bold text-lg flex justify-between items-center text-black">
+        Is this product original?
+        <span className="text-2xl transition-transform group-open:rotate-180">+</span>
+      </summary>
+      <p className="mt-4 text-slate-600 leading-relaxed border-t border-slate-100 pt-4">
+        Yes, 100% original and sourced from authorized distributors.
+      </p>
+    </details>
+    <details className="border border-slate-100 p-6 rounded-xl cursor-pointer bg-white shadow-sm group">
+      <summary className="font-bold text-lg flex justify-between items-center text-black">
+        What is the return policy?
+        <span className="text-2xl transition-transform group-open:rotate-180">+</span>
+      </summary>
+      <p className="mt-4 text-slate-600 leading-relaxed border-t border-slate-100 pt-4">
+        Return within 7 days if unused and in original packaging.
+      </p>
+    </details>
+  </div>
+));
+FAQSection.displayName = "FAQSection";
