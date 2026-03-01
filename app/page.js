@@ -6,60 +6,37 @@ import HomePage from "./home/page";
 import useProductStore from '@/store/productStore';
 
 export default function UserRegister() {
-  const [dbStatus, setDbStatus] = useState(null);
-  const [loading, setLoading] = useState(true);
   const API_URL = process.env.NEXT_PUBLIC_API_URL;
-  const fetchProducts = useProductStore((state) => state.fetchProducts);
-  useEffect(() => {
-    fetchProducts(); // Fires once on mount
-  }, []);
+  const router = useRouter();
+// Get global state from Zustand
+  const { fetchProducts, isLoading: isStoreLoading, error: storeError } = useProductStore();
 
-
-  useEffect(() => {
-    async function checkDB() {
-      try {
-        const response = await fetch(`${API_URL}/test`);
-              // change url to deploy backend like this "https://e-commerce-backend-psi-three.vercel.app/test" for production 
-
-        const data = await response.json();
-        setDbStatus(data.message);
-      } catch (error) {
-        setDbStatus("DB connection failed");
-        console.error(error);
-      } finally {
-        setLoading(false);
-      }
-    }
-    checkDB();
-  }, []);
-  
+  const [isCheckingAuth, setIsCheckingAuth] = useState(true);
   const [form, setForm] = useState({
-    userName: "",
-    email: "",
-    password: "",
-    fullName: "",
-    isLoggedIn: true,
+    userName: "", email: "", password: "", fullName: "", isLoggedIn: true,
   });
   const [error, setError] = useState("");
-  const router = useRouter();
-  // Redirect based on presence of "user" in localStorage:
+
+  // 1. SILENT AUTH CHECK
   useEffect(() => {
-    if (typeof window === "undefined") return;
     const user = localStorage.getItem("user");
     if (user) {
       router.replace("/home");
     } else {
-      return
+      setIsCheckingAuth(false); // Only show form if definitely logged out
     }
   }, [router]);
+
+  // 2. BACKGROUND DATA FETCH
+  useEffect(() => {
+    fetchProducts();
+  }, [fetchProducts]);
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
-
   const handleSubmit = async (e) => {
-    
     e.preventDefault();
     setError("");
     try {
@@ -77,26 +54,12 @@ export default function UserRegister() {
         setError(data.message || "Registration failed");
       }
     } catch (err) {
-      setError("Something went wrong. Please try again.");
-      console.log(err);
+      setError("Server is currently unreachable. Please try again later.");
     }
   };
 
-  if (loading) {
-    return (
-      <div className="flex justify-center items-center h-screen text-xl font-semibold">
-        Checking database connection...
-      </div>
-    );
-  }
-
-  if (dbStatus !== "DB is connected") {
-    return (
-      <div className="flex justify-center items-center h-screen text-red-500 text-xl font-semibold">
-        {dbStatus}
-      </div>
-    );
-  }
+  // If we are still checking if the user is logged in, show nothing (prevents flash)
+  if (isCheckingAuth) return null;
 
 
   return (

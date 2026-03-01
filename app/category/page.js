@@ -5,9 +5,12 @@ import Head from "next/head";
 import { Slider } from "@/components/ui/slider";
 import Image from "next/image";
 import Header from "@/components/header";
+import { SlidersHorizontal, X } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 
-// 1. Memoize Product Card to prevent re-renders when other filters change
+/* ================= PRODUCT CARD ================= */
+
 const ProductCard = memo(({ product, renderStars, getCloudinaryImage }) => (
   <div className="group cursor-pointer">
     <div className="aspect-square rounded-lg mb-4 overflow-hidden relative h-64 bg-gray-100">
@@ -20,15 +23,19 @@ const ProductCard = memo(({ product, renderStars, getCloudinaryImage }) => (
         loading="lazy"
       />
     </div>
+
     <h3 className="font-medium mb-2 group-hover:text-gray-600 transition truncate">
       {product.name}
     </h3>
+
     <div className="flex mb-2">
       {renderStars(product.rating)}
       <span className="text-sm text-gray-600 ml-2">{product.rating}/5</span>
     </div>
+
     <div className="flex items-center space-x-2">
       <span className="font-bold text-lg">${product.price}</span>
+
       {product.originalPrice && (
         <>
           <span className="text-gray-500 line-through">
@@ -44,19 +51,19 @@ const ProductCard = memo(({ product, renderStars, getCloudinaryImage }) => (
 ));
 ProductCard.displayName = "ProductCard";
 
+/* ================= MAIN PAGE ================= */
+
 export default function CasualPage() {
   const [products, setProducts] = useState([]);
   const [sortBy, setSortBy] = useState("");
   const [showFilters, setShowFilters] = useState(false);
   const [priceRange, setPriceRange] = useState([0, 1000]);
 
-  // 2. Memoize static data to avoid recreation on every render
   const categories = useMemo(
     () => ["T-shirts", "Shorts", "Shirts", "Hoodie", "Jeans"],
     [],
   );
 
-  // 3. useCallback for utility functions passed to memoized children
   const getCloudinaryImage = useCallback((imageUrl) => {
     if (imageUrl?.startsWith("http")) return imageUrl;
     if (imageUrl) {
@@ -96,12 +103,12 @@ export default function CasualPage() {
     fetchProducts();
   }, []);
 
-  // 4. useMemo for Filtering logic
-  // This ONLY recalculates when products, priceRange, or sortBy changes
   const filteredProducts = useMemo(() => {
     return products.filter((p) => {
       const matchesPrice = p.price >= priceRange[0] && p.price <= priceRange[1];
+
       const matchesCategory = sortBy === "" || p.category === sortBy;
+
       return matchesPrice && matchesCategory;
     });
   }, [products, priceRange, sortBy]);
@@ -111,11 +118,12 @@ export default function CasualPage() {
       <Head>
         <title>Casual Wear - Shop.co</title>
       </Head>
+
       <Header />
 
       <div className="max-w-7xl mx-auto px-4 py-8">
         <div className="flex flex-col lg:flex-row gap-8">
-          {/* Sidebar Filter - Desktop */}
+          {/* Desktop Sidebar */}
           <aside className="hidden lg:block w-80 flex-shrink-0">
             <div className="border border-gray-200 rounded-lg p-6 sticky top-4">
               <h2 className="text-xl font-semibold mb-6">Filters</h2>
@@ -157,18 +165,28 @@ export default function CasualPage() {
           <main className="flex-1">
             <div className="flex justify-between items-center mb-8">
               <h1 className="text-3xl font-bold">Casual</h1>
-              <p className="text-gray-500 text-sm">
-                Showing {filteredProducts.length} Products
-              </p>
+
+              <div className="flex items-center gap-4">
+                <p className="hidden sm:block text-gray-500 text-sm">
+                  Showing {filteredProducts.length} Products
+                </p>
+
+                {/* Mobile Filter Button */}
+                <button
+                  onClick={() => setShowFilters(true)}
+                  className="lg:hidden flex items-center gap-2 bg-gray-100 px-4 py-2 rounded-full text-sm font-medium"
+                >
+                  <SlidersHorizontal className="w-4 h-4" />
+                  Filter
+                </button>
+              </div>
             </div>
 
-            {/* Optimized Grid */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 justify-items-center">
               {filteredProducts.map((product) => (
                 <Link
                   key={product._id}
                   href={`/products/${product._id}`}
-                  className="block group"
                 >
                   <ProductCard
                     product={product}
@@ -187,6 +205,73 @@ export default function CasualPage() {
           </main>
         </div>
       </div>
+
+      <AnimatePresence>
+        {showFilters && (
+          <>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setShowFilters(false)}
+              className="fixed inset-0 bg-black/50 z-40 lg:hidden"
+            />
+
+            <motion.div
+              initial={{ y: "100%" }}
+              animate={{ y: 0 }}
+              exit={{ y: "100%" }}
+              transition={{ type: "spring", damping: 25 }}
+              className="fixed bottom-0 left-0 right-0 bg-white rounded-t-3xl p-6 z-50 lg:hidden max-h-[85vh] overflow-y-auto"
+            >
+              <div className="flex justify-between items-center mb-6">
+                <h2 className="text-xl font-semibold">Filters</h2>
+                <button onClick={() => setShowFilters(false)}>
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              <div className="mb-8">
+                <h3 className="font-medium mb-4">Price Range</h3>
+                <Slider
+                  value={priceRange}
+                  min={0}
+                  max={1000}
+                  step={10}
+                  onValueChange={setPriceRange}
+                />
+                <div className="flex justify-between mt-2 text-sm font-bold">
+                  <span>${priceRange[0]}</span>
+                  <span>${priceRange[1]}</span>
+                </div>
+              </div>
+
+              <div className="mb-8">
+                <h3 className="font-medium mb-4">Category</h3>
+                <select
+                  value={sortBy}
+                  onChange={(e) => setSortBy(e.target.value)}
+                  className="w-full border p-2 rounded-md"
+                >
+                  <option value="">All Categories</option>
+                  {categories.map((cat) => (
+                    <option key={cat} value={cat}>
+                      {cat}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <button
+                onClick={() => setShowFilters(false)}
+                className="w-full bg-black text-white py-3 rounded-full font-medium"
+              >
+                Apply Filters
+              </button>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

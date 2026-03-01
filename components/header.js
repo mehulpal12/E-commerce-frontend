@@ -1,102 +1,137 @@
 "use client";
 
-import { useState, useCallback, useMemo, memo } from "react";
-import { Button } from "@/components/ui/button";
-import { Menu, Search, ShoppingCart, User, X } from "lucide-react";
+import { useState, useEffect, useMemo, useCallback, memo } from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { motion, AnimatePresence } from "framer-motion";
+import { Menu, Search, User, X, ChevronRight, ShoppingBag } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import useProductStore from "@/store/productStore";
+import { cn } from "@/lib/utils";
 
-// Memoize Navigation to prevent re-renders during search typing
-const NavLinks = memo(() => (
-  <nav className="hidden md:flex items-center space-x-8">
-    {[ "On Sale", "New Arrivals", "Brands", "Category"].map((item) => (
-      <Link
-        key={item}
-        href={item === "Category" ? "/category" : `/smallpage/${item.toLowerCase().replace(" ", "")}`}
-        className="text-sm font-medium hover:text-primary transition-colors"
-      >
-        {item}
-      </Link>
-    ))}
-  </nav>
-));
-NavLinks.displayName = "NavLinks";
 
-export default function Header() {
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [searchQuery, setSearchQuery] = useState("");
-  
-  // Selector optimization: Only grab what we need
-  const products = useProductStore((state) => state.products);
 
-  // 1. useCallback: Memoize search handler
-  const handleSearch = useCallback((e) => {
-    setSearchQuery(e.target.value);
-  }, []);
+const NavLinks = memo(function NavLinks({
+  vertical = false,
+  onItemClick,
+}) {
+  const pathname = usePathname();
 
-  // 2. useCallback: Memoize clear handler
-  const clearSearch = useCallback(() => {
-    setSearchQuery("");
-  }, []);
+  const links = [
+    { name: "On Sale", href: "/smallpage/onsale" },
+    { name: "New Arrivals", href: "/smallpage/newarrivals" },
+    { name: "Brands", href: "/smallpage/brands" },
+    { name: "Category", href: "/category" },
+  ];
 
-  // 3. useMemo: Perform the expensive filter operation here
-  // This ONLY runs when searchQuery or products array changes
-  const filteredProducts = useMemo(() => {
-    if (!searchQuery.trim()) return [];
-    
-    const query = searchQuery.toLowerCase();
-    return (products || []).filter((p) =>
-      p.name.toLowerCase().includes(query) ||
-      p.description?.toLowerCase().includes(query)
-    ).slice(0, 6); // Limit results for performance and UI clarity
-  }, [products, searchQuery]);
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div className="container flex h-16 items-center justify-between md:px-16 px-8 mx-auto">
-        {/* Logo */}
-        <Link href="/home" className="text-2xl font-bold pe-8 lg:pe-16 shrink-0">
-          SHOP.CO
-        </Link>
+    <nav
+      className={cn(
+        "flex",
+        vertical ? "flex-col space-y-4 bg-white" : "items-center space-x-8"
+      )}
+    >
+      {links.map((link) => {
+        const active = pathname === link.href;
 
-        {/* Desktop Navigation */}
-        <NavLinks />
-
-        {/* Search Bar - Desktop */}
-        <div className="hidden md:flex items-center flex-1 max-w-sm mx-8 relative">
-          <div className="relative w-full">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
-            <input
-              type="text"
-              placeholder="Search for products..."
-              value={searchQuery}
-              onChange={handleSearch}
-              className="w-full px-4 py-2 pl-10 pr-10 border border-gray-200 rounded-full bg-gray-100/50 focus:outline-none focus:ring-2 focus:ring-black focus:bg-white transition-all"
-            />
-            {searchQuery && (
-              <button onClick={clearSearch} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-black">
-                <X className="w-4 h-4" />
-              </button>
+        return (
+          <Link
+            key={link.name}
+            href={link.href}
+            onClick={onItemClick}
+            className={cn(
+              "relative text-sm font-medium transition-colors duration-200",
+              active ? "text-black font-semibold" : "text-muted-foreground hover:text-black",
+              vertical && "flex items-center justify-between py-2 border-b"
             )}
-          </div>
+          >
+            {link.name}
 
-          {/* Floating Search Results */}
-          {filteredProducts.length > 0 && (
-            <div className="absolute top-full left-0 w-full mt-2 bg-white border border-gray-200 rounded-2xl shadow-2xl overflow-hidden z-[60]">
-              {filteredProducts.map((product) => (
-                <Link 
-                  key={product._id} 
-                  href={`/products/${product._id}`}
-                  onClick={clearSearch}
-                  className="flex items-center gap-4 p-3 hover:bg-gray-50 transition-colors border-b last:border-0"
+            {active && !vertical && (
+              <span className="absolute -bottom-2 left-0 w-full h-[2px] bg-black" />
+            )}
+
+            {vertical && <ChevronRight size={16} />}
+          </Link>
+        );
+      })}
+    </nav>
+  );
+});
+
+/* ---------------- HEADER ---------------- */
+
+export default function Header() {
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [query, setQuery] = useState("");
+
+  const products = useProductStore((state) => state.products);
+
+  useEffect(() => {
+    document.body.style.overflow = menuOpen || searchOpen ? "hidden" : "unset";
+  }, [menuOpen, searchOpen]);
+
+  const filteredProducts = useMemo(() => {
+    if (!query.trim()) return [];
+    return products
+      ?.filter((p) =>
+        p.name.toLowerCase().includes(query.toLowerCase())
+      )
+      .slice(0, 5);
+  }, [products, query]);
+
+  const closeSearch = useCallback(() => {
+    setQuery("");
+    setSearchOpen(false);
+  }, []);
+
+  return (
+    <header className="sticky top-0 z-50 w-full border-b bg-white">
+      <div className="container mx-auto flex h-16 items-center justify-between px-4">
+
+        {/* Left */}
+        <div className="flex items-center gap-2">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="md:hidden"
+            onClick={() => setMenuOpen(true)}
+          >
+            <Menu size={22} />
+          </Button>
+
+          <Link href="/home" className="text-xl font-black">
+            SHOP.CO
+          </Link>
+        </div>
+
+        {/* Desktop Nav */}
+        <div className="hidden md:block">
+          <NavLinks />
+        </div>
+
+        {/* Desktop Search */}
+        <div className="hidden md:block relative w-[300px]">
+          <input
+            type="text"
+            placeholder="Search products..."
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            className="w-full rounded-full bg-gray-100 px-4 py-2 text-sm outline-none"
+          />
+
+          {filteredProducts?.length > 0 && (
+            <div className="absolute mt-2 w-full rounded-lg border bg-white shadow-lg">
+              {filteredProducts.map((p) => (
+                <Link
+                  key={p._id}
+                  href={`/product/${p._id}`}
+                  onClick={closeSearch}
+                  className="block px-4 py-2 text-sm hover:bg-gray-50"
                 >
-                  <div className="w-10 h-10 bg-gray-100 rounded flex items-center justify-center text-[10px] font-bold">
-                    IMG
-                  </div>
-                  <div>
-                    <p className="text-sm font-semibold text-gray-900">{product.name}</p>
-                    <p className="text-xs text-gray-500">${product.price}</p>
-                  </div>
+                  {p.name}
                 </Link>
               ))}
             </div>
@@ -104,30 +139,101 @@ export default function Header() {
         </div>
 
         {/* Right Icons */}
-        <div className="flex items-center space-x-2 md:space-x-4">
-          <IconButton href="/cart" icon={<ShoppingCart className="h-5 w-5" />} />
-          <IconButton href="/user/userDetail" icon={<User className="h-5 w-5" />} />
-
+        <div className="flex items-center gap-2">
           <Button
             variant="ghost"
             size="icon"
             className="md:hidden"
-            onClick={() => setIsMenuOpen(!isMenuOpen)}
+            onClick={() => setSearchOpen(true)}
           >
-            {isMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+            <Search size={20} />
           </Button>
+
+          <Link href="/cart">
+            <Button variant="ghost" size="icon">
+              <ShoppingBag size={20} />
+            </Button>
+          </Link>
+
+          <Link href="/user/userDetail">
+            <Button variant="ghost" size="icon">
+              <User size={20} />
+            </Button>
+          </Link>
         </div>
       </div>
+
+      {/* ---------------- MOBILE SEARCH ---------------- */}
+
+      <AnimatePresence>
+        {searchOpen && (
+          <>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={closeSearch}
+              className="fixed inset-0 bg-black/30 z-40 md:hidden"
+            />
+
+            <motion.div
+              initial={{ y: "-100%" }}
+              animate={{ y: 0 }}
+              exit={{ y: "-100%" }}
+              className="fixed top-0 left-0 w-full bg-white p-4 z-50 md:hidden"
+            >
+              <div className="flex gap-2">
+                <input
+                  autoFocus
+                  value={query}
+                  onChange={(e) => setQuery(e.target.value)}
+                  className="flex-1 rounded-full bg-gray-100 px-4 py-2 outline-none"
+                />
+                <Button onClick={closeSearch}>Cancel</Button>
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+
+      {/* ---------------- MOBILE SIDEBAR ---------------- */}
+
+      <AnimatePresence>
+        {menuOpen && (
+          <>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setMenuOpen(false)}
+              className="fixed inset-0 bg-black/30 z-40 md:hidden"
+            />
+
+            <motion.div
+              initial={{ x: "-100%" }}
+              animate={{ x: 0 }}
+              exit={{ x: "-100%" }}
+              className="fixed top-0 left-0 h-full w-[260px] bg-white p-6 z-50 md:hidden"
+            >
+              <div className="flex justify-between items-center mb-8">
+                <span className="text-xl font-bold">SHOP.CO</span>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => setMenuOpen(false)}
+                >
+                  <X size={18} />
+                </Button>
+              </div>
+
+              <NavLinks
+                vertical
+                onItemClick={() => setMenuOpen(false)}
+              />
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
     </header>
   );
 }
-
-// Sub-component helper
-const IconButton = memo(({ href, icon }) => (
-  <Link href={href}>
-    <Button variant="ghost" size="icon" className="rounded-full hover:bg-gray-100">
-      {icon}
-    </Button>
-  </Link>
-));
-IconButton.displayName = "IconButton";

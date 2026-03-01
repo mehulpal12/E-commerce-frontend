@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Star } from "lucide-react";
 import Image from "next/image";
 import { motion } from "framer-motion";
+import Link from "next/link";
 
 // Memoize sub-components to prevent re-renders when the parent re-renders
 const StatItem = memo(({ value, label }) => (
@@ -64,12 +65,13 @@ function HeroSection() {
             </motion.p>
 
             <motion.div variants={itemVariants}>
+             <Link href="/category">
               <Button 
                 size="lg" 
                 className="w-full sm:w-auto px-12 py-7 text-lg rounded-full bg-black hover:bg-gray-800 transition-all active:scale-95"
               >
                 Shop Now
-              </Button>
+              </Button></Link>
             </motion.div>
 
             {/* Stats */}
